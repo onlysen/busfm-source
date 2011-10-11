@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title></title>
+	</head>
+<body>
+<form id="form1" name="form1" action="/" method="post">
+	<input type="text" name="q1" id="q1" value="" />
+	<input type="submit" name="submit" id="submit" value="yahoo" />
+	<input type="button" name="submit2" id="submit2" value="douban" />
+</form>
+	<br/>
+	返回结果：<p id="msg"></p>
+	<br/>
+	<textarea id="re" cols="90" rows="20"></textarea>
+</body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript">
+
+	$(function(){
+		$("#form1").submit(function(e){
+			e.preventDefault();
+			$("#re").val("loading...");
+			var url='http://query.yahooapis.com/v1/public/yql?q=select * from music.track.search where keyword="'+$("#q1").val()+'"';
+			$.get(encodeURI(url),{format:"json",diagnostics:"true"},function(d){
+				$("#re").val(JsonUti.convertToString(d));
+				var r="";
+				if(d.query.count>0){
+					var s=d.query.results.Track;
+					// if(s.length!=undefined) s=s[0];
+					if($.isArray(s)) s=s[0];
+					r+="popularity : "+s.popularity+"<br/>";
+					r+="releaseYear : "+s.releaseYear +"&nbsp;&copy;"+s.label+"<br/>";
+					r+="title : "+s.title +"<br/>";
+					r+="song url : "+s.url +"<br/>";
+					r+="artist url: "+s.Artist.website +"<br/>";
+					if(s.Album!=null){
+						r+="album url: <a href='"+s.Album.Release.url+"' target='_blank'>"+s.Album.Release.url+"</a><br/>";
+						var img=s.Album.Release.Image;
+					}
+					if(img!=undefined){
+						if(img.length!=undefined) img=img[0];
+						r+="album cover: <img src='"+s.Album.Release.Image[0].url.replace(/\?.*/g,'?size=120')+"' alt='' /><br/>";
+					}
+					var Category=s.Category;
+					if(s.Category!=undefined){
+						if(Category.length!=undefined){
+							r+="Category: ";
+							for (var i=0;i<Category.length;){
+								r+=Category[i].name;
+								if(++i<Category.length) r+=", ";
+							}
+						}else{
+							r+="Category : "+ Category.name+"<br/>";
+						}
+					}
+					$("#msg").html(r);
+				}
+			},"jsonp");
+		});
+		$("#submit2").click(function(){
+			$("#re").val("loading...");
+			var url='http://api.douban.com/music/subjects?q='+$("#q1").val();
+			$.get(encodeURI(url),{alt:"xd","max-results":"1"},function(d){
+				$("#re").val(JsonUti.convertToString(d));
+				if(d.entry.length>0){
+					var e=d.entry[0];
+					var h=e.link[1]["@href"];
+					var s="<a href='"+h+"' target='_blank'>"+h+"</a>";
+					s+="<br/>"+parseDoubanAttr(e["db:attribute"]);
+					$("#msg").html(s);
+				}
+			},"jsonp");
+		});
+	});
+	//解析豆瓣专辑属性API
+	function parseDoubanAttr(attribute){
+		var y=p="";
+		$.each(attribute,function(i,m){
+			if(m["@name"]=="pubdate") y=m.$t.replace(/-.*/g,'');
+			if(m["@name"]=="publisher") p=m.$t;
+		});
+		return "&copy;&nbsp;"+y+"&nbsp;"+p;
+	}
+	  var JsonUti = {
+            //定义换行符
+            n: "\n",
+            //定义制表符
+            t: "\t",
+            //转换String
+            convertToString: function(obj) {
+                return JsonUti.__writeObj(obj, 1);
+            },
+            //写对象
+            __writeObj: function(obj    //对象
+                    , level             //层次（基数为1）
+                    , isInArray) {       //此对象是否在一个集合内
+                //如果为空，直接输出null
+                if (obj == null) {
+                    return "null";
+                }
+                //为普通类型，直接输出值
+                if (obj.constructor == Number || obj.constructor == Date || obj.constructor == String || obj.constructor == Boolean) {
+                    var v = obj.toString();
+                    var tab = isInArray ? JsonUti.__repeatStr(JsonUti.t, level - 1) : "";
+                    if (obj.constructor == String || obj.constructor == Date) {
+                        //时间格式化只是单纯输出字符串，而不是Date对象
+                        return tab + ("\"" + v + "\"");
+                    }
+                    else if (obj.constructor == Boolean) {
+                        return tab + v.toLowerCase();
+                    }
+                    else {
+                        return tab + (v);
+                    }
+                }
+ 
+                //写Json对象，缓存字符串
+                var currentObjStrings = [];
+                //遍历属性
+                for (var name in obj) {
+                    var temp = [];
+                    //格式化Tab
+                    var paddingTab = JsonUti.__repeatStr(JsonUti.t, level);
+                    temp.push(paddingTab);
+                    //写出属性名
+                    temp.push(name + " : ");
+ 
+                    var val = obj[name];
+                    if (val == null) {
+                        temp.push("null");
+                    }
+                    else {
+                        var c = val.constructor;
+ 
+                        if (c == Array) { //如果为集合，循环内部对象
+                            temp.push(JsonUti.n + paddingTab + "[" + JsonUti.n);
+                            var levelUp = level + 2;    //层级+2
+ 
+                            var tempArrValue = [];      //集合元素相关字符串缓存片段
+                            for (var i = 0; i < val.length; i++) {
+                                //递归写对象                         
+                                tempArrValue.push(JsonUti.__writeObj(val[i], levelUp, true));
+                            }
+ 
+                            temp.push(tempArrValue.join("," + JsonUti.n));
+                            temp.push(JsonUti.n + paddingTab + "]");
+                        }
+                        else if (c == Function) {
+                            temp.push("[Function]");
+                        }
+                        else {
+                            //递归写对象
+                            temp.push(JsonUti.__writeObj(val, level + 1));
+                        }
+                    }
+                    //加入当前对象“属性”字符串
+                    currentObjStrings.push(temp.join(""));
+                }
+                return (level > 1 && !isInArray ? JsonUti.n : "")                       //如果Json对象是内部，就要换行格式化
+                    + JsonUti.__repeatStr(JsonUti.t, level - 1) + "{" + JsonUti.n     //加层次Tab格式化
+                    + currentObjStrings.join("," + JsonUti.n)                       //串联所有属性值
+                    + JsonUti.n + JsonUti.__repeatStr(JsonUti.t, level - 1) + "}";   //封闭对象
+            },
+            __isArray: function(obj) {
+                if (obj) {
+                    return obj.constructor == Array;
+                }
+                return false;
+            },
+            __repeatStr: function(str, times) {
+                var newStr = [];
+                if (times > 0) {
+                    for (var i = 0; i < times; i++) {
+                        newStr.push(str);
+                    }
+                }
+                return newStr.join("");
+            }
+        };
+</script>
+</html>

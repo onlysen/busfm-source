@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title>巴士电台-个人资料</title>
+		<link href="/css/form.css?v=0.3" rel="stylesheet" type="text/css" />		
+		
+		<style type="text/css">
+			ul{width:420px; margin:20px auto;}
+			li .lititle{ width:120px;}
+			li{width:300px;}
+			#btnpwd{margin-left:40px;}
+		</style>
+	</head>
+<body>
+<div id="dtitle">输入您的登录信息</div>
+	<form id="form1" name="form1" action="/admin/member.php?action=login_fm" method="post">
+		<ul id="u-login">
+			<li><span class="lititle">您的E-mail地址：</span><input type="text" value="" class="loginTxt" maxlength="40" id="txtemail" name="member_mail" /></li>
+			<li><span class="lititle">您的注册密码：</span><input type="password" value="" class="loginTxt" maxlength="20" id="txtpwd" name="member_password" /></li>
+			<li style="text-align:center;"><input type="checkbox" id="cbxCookie" name="cbxCookie" style="border:none;vertical-align:middle;" checked /><label for="cbxCookie">记住我，下次自动登录</label></li>
+			<li style="height:30px; line-height:30px; text-align:center;"><input type="submit" value="登&nbsp;录" class="graybtn" /></li>
+			<li class="regli"><a href="javascript:void(0);" style="float:right;" onclick="top.getpwd();">忘记密码？</a><a href="javascript:void(0);" onclick="getaccount();">没有账号？</a></li>
+		</ul>
+	</form>
+	<form id="form2" name="form1" action="bug.php" method="post">
+		<ul id="u-profile" style="display:none;">
+			<li><span class="lititle">昵称：</span><input type="text" des="请填入您想使用的昵称" name="nickname" id="nickname" maxlength="20" class="buglist" value="匿名用户" /><span class="tips"></span></li>
+			<li><span class="lititle">邮件地址：</span><label name="email" id="email" class="pflist" /><span class="tips"></span></li>
+			<li><span class="lititle">注册时间：</span><label des="" name="env" id="env" class="pflist">2010-12-13</label><span class="tips"></span></li>
+			<li><span class="lititle">收听时长：</span><label des="" name="env" id="env" class="pflist">3583分钟</label><span class="tips"></span></li>
+			<li><span class="lititle">收藏曲目：</span><label des="" name="env" id="env" class="pflist">362首</label><a href="#" onclick="">查看</a><span class="tips"></span></li>
+			<li><span class="lititle">&nbsp;</span><input type="submit" id="btnok" value="更新个人资料" /><input type="button" id="btnpwd" value="密码管理" onclick="gopwd();" />
+		</ul>
+	</form>
+</body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	if(top.getCookie("member_id")!=""){getProfile();$("#u-login").hide();$("#u-profile").show();}
+	//登录
+	$("#form1").bind("submit",function(e){
+		var emailtxt=$("#txtemail").val();
+		if(emailtxt==""||!em_p.test(emailtxt)||$("#txtpwd").val()=="") top.popAlert("登录信息无效");
+		else{
+			var url=encodeURI($(this).attr("action")+"&t="+new Date().getMilliseconds());
+			$.post(url,$(this).serialize(),function(d){
+				var f=d.split('|');
+				if(f[0]=="0") top.popAlert(f[1],2);
+				else{
+					//取出所需要的资料
+					getProfile();
+					$("#u-login").slideUp(1000);
+					$("#u-profile").slideDown(1000);
+				}
+			});
+		}
+		e.preventDefault();
+	});
+	//个人资料
+	var em_p=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+	var vali=true;
+	$(".buglist").focus(function(){var o=$(this); o.nextAll(".tips").text(o.attr("des")).removeClass("onerror onpass").addClass("onfocus").show();});
+	//$("#email").blur(function(){var o=$(this);var t=o.nextAll(".tips"); var v=o.val();if(v==""||!em_p.test(v)){t.text("邮件地址不可为空，或必须拥有合法的格式").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onerror onfocus").addClass("onpass");}});
+	$("#nickname").blur(function(){var o=$(this);var t=o.nextAll(".tips"); if(o.val()==""){t.text("昵称不能为空").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{
+		//todo:ajax查昵称是否被使用
+		if(o.val()==top.getCookie("member_nickname")){t.text("您当前的昵称").removeClass("onerror onfocus").addClass("onpass");return;}
+		$.get(encodeURI("/admin/member.php?action=validate_nickname&name="+o.val()+"&t="+new Date().getMilliseconds()),function(d){
+		f=d.split('|');
+		if(f[0]=="1"){t.text("可以使用").removeClass("onerror onfocus").addClass("onpass");}
+		else{ t.text("昵称被占用").removeClass("onfocus onpass").addClass("onerror");}
+		});
+	}
+	});
+	$("#form2").submit(function(e){
+		$(".buglist").blur();
+		if(!vali){
+			vali=true;
+		}else{
+			$.post($(this).attr("action")+"?t="+new Date().getMilliseconds(),$(this).serialize(),function(d){
+				//更新资料结果
+			});
+		}
+		e.preventDefault();
+	});
+});
+function getaccount(){top.location.href='default.html?t='+new Date().getMilliseconds()+'&op=reg';}
+function gopwd(){top.location.href="default.html?t="+new Date().getMilliseconds()+"&ty=1&op=pwd";}//管理密码
+function getProfile(){$("#nickname").val(top.getCookie("member_nickname"));$("#email").text(top.getCookie("member_mail"));$("#dtitle").text("您的个人资料");}
+</script>
+</html>

@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<title>电台巴士-bug提交反馈系统</title>
+		<link href="../css/form.css?v=0.1" rel="stylesheet" type="text/css" />
+		<style type="text/css">
+		
+#email{width:412px;}
+#env{width:413px;}
+#opration{width:300px; 	}
+#describ{border:1px solid #aaa; overflow-y:auto;}
+#ddlFunc{ width:100px; height:20px;}
+		</style>
+	</head>
+<body>
+	<form id="form1" name="form1" action="bug.php" method="post">
+		<div id="dtitle">请于此处填入必要信息：</div>
+		<ul>
+			<li><span class="lititle">提交人E-mail：</span><input type="text" des="请填入您的电子邮箱地址，方便我们更好地解决问题。" name="email" id="email" maxlength="100" class="buglist"></input><span class="tips"></span></li>
+			<li><span class="lititle">环境描述：</span><input type="text" des="如果可能，请简单描述您电脑所用的操作系统和浏览页面的浏览器，如windows xp professional ie 6.0" name="env" id="env" maxlength="200" class="buglist"></input><span class="tips"></span></li>
+			<li><span class="lititle">操作功能：</span>
+			<select id="ddlFunc" name="ddlFunc">
+				<optgroup label="听歌">
+					<option value="01">无法播放</option>
+					<option value="02">下一曲失败</option>
+					<option value="03">收藏</option>
+					<option value="04">切换频道</option>
+				</optgroup>
+				<optgroup label="登录/注册">
+					<option value="11">登录失败</option>
+					<option value="12">无法注册</option>
+				</optgroup>
+				<optgroup label="个人面板">
+					<option value="21">读取个人信息错误</option>
+					<option value="22">读取不到收藏列表</option>
+					<option value="23">读取不到个人日记</option>
+					<option value="24">无法登出</option>				
+				</optgroup>
+				<optgroup label="其他">
+					<option value="-1" selected>其他情况</option>
+				</optgroup>
+			</select>
+			<input type="text" des="请简单描述错误发生时您想要进行的动作" name="opration" id="opration" maxlength="100" class="buglist"></input><span class="tips"></span></li>
+			<li style="height:auto;"><span class="lititle" style="vertical-align:top;">详细描述：</span><textarea des="请详细描述错误发生时的一些情况" name="describ" id="describ" maxlength="1000" rows="10" cols="66" class="buglist"></textarea><span class="tips"></span></li>
+			<li><span class="lititle">&nbsp;</span><input type="submit" id="btnok" value="提交" />
+		</ul>
+	</form>
+</body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	var em_p=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+	var vali=true;
+	$("#ddlFunc").change(function(){if($(this).val()=="-1")$("#opration").show();else $("#opration").hide();})
+	.focus(function(){$("#opration").triggerHandler('focus');})
+	.blur(function(){if($(this).val()!="-1"){$(this).nextAll(".tips").text("输入正确").removeClass("onfocus onfocus").addClass("onpass");}else{$("#opration").focus();}});
+	$(".buglist").focus(function(){var o=$(this); o.nextAll(".tips").text(o.attr("des")).removeClass("onerror onpass").addClass("onfocus").show();});
+	$("#email").blur(function(){var o=$(this);var t=o.nextAll(".tips"); var v=o.val();if(v==""||!em_p.test(v)){t.text("邮件地址为空，或格式不正确").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onerror onfocus").addClass("onpass");}});
+	$("#env").blur(function(){$(this).nextAll(".tips").text("输入正确").removeClass("onfocus").addClass("onpass");});
+	$("#opration").blur(function(){var t=$(this).nextAll(".tips");if($("#ddlFunc").val()=="-1"&&$(this).val()==""){t.text("请描述您进行的操作").removeClass("onpass onfocus").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onerror onfocus").addClass("onpass");}});
+	$("#describ").blur(function(){var o=$(this);var t=o.nextAll(".tips"); if(o.val()==""){t.text("问题描述不可为空").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onerror onfocus").addClass("onpass");}});
+	$("#form1").submit(function(e){
+		$(".buglist").blur();
+		if(!vali){
+			e.preventDefault();
+		}
+		vali=true;
+	});
+});
+</script>
+</html>

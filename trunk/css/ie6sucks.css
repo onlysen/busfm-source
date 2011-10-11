@@ -1,0 +1,32 @@
+﻿@charset "UTF-8";
+body{background-image:url(../image/ie6/bg6.gif);}
+#coverimg{background-image:url(../image/ie6/cover.gif);}
+#jplayer_control a{cursor:pointer;}
+#jplayer_control{top:-21px;}
+#favlist #listcover{position:static;}
+#msgs .left{background-image:url(../image/leaf2.gif);}
+#msgs .right{background-image:url(../image/leaf2.gif);}
+#favlist div{font-size:0px;}
+#SongInfo{right:302px;}
+#jplayer_vbar{ position:relative; top:20px;}
+.iehover span.ieclose{background-position:-10px -17px!important;}
+
+/*box*/
+#b-head .h-left,#b-head .h-right, #b-foot .f-left,#b-foot .f-right{background-image:url(../image/box/corner.gif); border:1 solid #fff;}
+#b-head {cursor:move!important;}
+#b-head .h-mid{background-image:url(../image/box/top.gif); float:left; margin:0; width:444px;}
+#b-body{background-image:url(../image/box/left.gif);}
+#b-body .b-main{background-image:url(../image/box/right.gif);}
+#b-foot .f-mid{background-image:url(../image/box/bottom.gif); float:left; margin:0; width:444px;}
+#diarylist .leftarr{left:-10px;}
+#txtdiary{width:93%;}
+#txtctr{top:8px; right:100px;}
+
+/*notice*/
+#notice{position:absolute; z-index:10;}
+#notice .n-close{ z-index:20;}
+#notice .n-body{ height:100px; overflow-x:hidden; overflow-y:auto; }
+#notice .n-arr{display:none;}
+
+/*sns icon*/
+#clipbord a.snsicon{ margin-right:5px;}

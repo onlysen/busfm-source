@@ -1,0 +1,7 @@
+<div id="footer">
+<p>
+Copyright © 2002-2009 BlogBus.com, All Rights Reserved.  <a href="<?php bloginfo('url'); ?>"><?php bloginfo('name'); ?></a> 版权所有
+</p>
+</div>
+
+

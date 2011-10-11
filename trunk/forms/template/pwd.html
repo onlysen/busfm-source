@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<title>巴士电台-密码维护</title>
+	<link href="/css/form.css?v=0.3" rel="stylesheet" type="text/css" />
+	<style type="text/css">
+		ul{display:none;}
+		.infoli{width:520px; line-height:18px; font-family:arial; padding-left:15px; white-space:normal;}
+	</style>
+</head>
+<body>
+<div id="dtitle">找回密码</div>
+<form method="post" action="/admin/member.php?action=forget_ok" id="form1" name="form1">
+	<ul id="retrive"><!--发密码重置请求-->
+		<li class="infoli">If you are having difficulty logging in, you can reset your password by typing the email address that you log in with. You will receive an email with instructions on how to reset your password. </li>
+		<li><span class="lititle">您的注册邮箱:</span><input type="text" name="member_mail" id="txtmail1" value="" des="您注册用的电子邮箱地址" class="buglist txtreg" /><span class="tips"></span></li>
+		<li><span class="lititle">&nbsp;</span><input type="submit" name="btnchange" value="找回密码" /> </li>
+	</ul>
+</form>
+<form method="post" action="testing.php" id="form2" name="form2">
+	<ul id="reset"><!--请求被接受，重置密码-->
+		<li class="infoli">To complete your password reset, type your new password below and confirm and submit. Once accepted, you will be immediately logged into your account.</li>
+		<li><span class="lititle">E-mail:</span><input type="text" name="member_mail" class="txtreg" id="txtmail2" readonly value="" /></li>
+		<li><span class="lititle">设置密码:</span><input type="password" name="member_password" id="txtpwd1" value="" des="6-20位字母和数字" class="buglist txtreg" /><span class="tips"></span></li>
+		<li><span class="lititle">确认密码:</span><input type="password" name="member_password2" id="txtpwd2" value="" des="请确认刚才输入的密码" class="buglist txtreg" /><span class="tips"></span></li>
+		<li><span class="lititle">&nbsp;</span><input type="submit" name="btnreset" value="重置密码" /> </li>
+	</ul>
+</form>
+<form method="post" action="/admin/member.php" id="form3" name="form3">
+	<ul id="change">
+		<li><span class="lititle">现用密码:</span><input type="password" name="member_password" id="txtpwd3" value="" des="您目前在使用的密码" class="buglist txtreg" /><span class="tips"></span></li>
+		<li><span class="lititle">设置密码:</span><input type="password" name="member_password" id="txtpwd4" value="" des="6-20位字母和数字" class="buglist txtreg" /><span class="tips"></span></li>
+		<li><span class="lititle">确认密码:</span><input type="password" name="member_password2" id="txtpwd5" value="" des="请确认刚才输入的密码" class="buglist txtreg" /><span class="tips"></span></li>
+		<li><span class="lititle">&nbsp;</span><input type="submit" name="btnchange" value="修改密码" />
+		<a href="javascript:void(0)" onclick="top.getpwd();">忘记密码</a> </li>
+	</ul>
+</form>
+</body>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	var em_p=/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+	var pwd_p=/^[0-9a-zA-Z]{6,20}$/;
+	var vali=true;
+	$(".buglist").focus(function(){var o=$(this); o.nextAll(".tips").text(o.attr("des")).removeClass("onerror onpass").addClass("onfocus").show();});
+	$("#txtmail1").blur(function(){var o=$(this);var t=o.nextAll(".tips"); var v=o.val();if(v==""||!em_p.test(v)){t.text("邮件地址为空，或格式不正确").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onerror onfocus").addClass("onpass");}});
+	$("#txtpwd1").blur(function(){var o=$(this); var t=o.nextAll(".tips"); var v=o.val();if(v==""||!pwd_p.test(v)){t.text("不允许的密码格式").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onfocus onerror").addClass("onpass");}});
+	$("#txtpwd2").blur(function(){var o=$(this); var t=o.nextAll(".tips"); var v=o.val();if(v==""||!pwd_p.test(v)||(v!=$("#txtpwd1").val())){var a="不允许的密码格式";if(v!=$("#txtpwd1").val()) a="密码输入不一致";t.text(a).removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onfocus onerror").addClass("onpass");}});
+	//$("#txtpwd3").blur(function(){var o=$(this); var t=o.nextAll(".tips"); var v=o.val();if(v==""||!pwd_p.test(v)){t.text("不允许的密码格式").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onfocus onerror").addClass("onpass");}});
+	$("#txtpwd4").blur(function(){var o=$(this); var t=o.nextAll(".tips"); var v=o.val();if(v==""||!pwd_p.test(v)){t.text("不允许的密码格式").removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onfocus onerror").addClass("onpass");}});
+	$("#txtpwd5").blur(function(){var o=$(this); var t=o.nextAll(".tips"); var v=o.val();if(v==""||!pwd_p.test(v)||(v!=$("#txtpwd4").val())){var a="不允许的密码格式";if(v!=$("#txtpwd4").val()) a="密码输入不一致";t.text(a).removeClass("onfocus onpass").addClass("onerror");vali=false;}else{t.text("输入正确").removeClass("onfocus onerror").addClass("onpass");}});
+	
+	$("#form1").submit(function(e){
+		$(".buglist",this).blur();
+		if(!vali) vali=true;
+		else{
+			$.get(encodeURI("/admin/member.php?action=forget_ok&member_mail="+$("#txtmail1").val()+"&t="+new Date().getMilliseconds()), function(d){var f=d.split('|'); if(f[0]=="0") top.popAlert(f[1],2);else top.popAlert(f[1],2);});
+		}
+		e.preventDefault();
+	});
+	$("#form2").submit(function(e){
+		$(".buglist",this).blur();
+		if(!vali) vali=true;
+		else{
+
+		}
+		e.preventDefault();
+	});
+	$("#form3").submit(function(e){
+		$(".buglist",this).blur();
+		if(!vali) vali=true;
+		else{
+
+		}
+		e.preventDefault();
+	});
+	
+	
+});
+	var stype=top.request(location.search,"type");
+	var t=$("#dtitle");
+	switch(stype){
+		case "1"://修改密码（登录状态）
+		t.text("修改密码");
+		$("#change").show();
+		break;
+		case "2"://重置密码
+		t.text("重置密码");
+		$("#reset").show();
+		break;
+		default://找回密码请求
+		t.text("找回密码");
+		$("#retrive").show();
+		break;
+	}
+</script>
+</html>

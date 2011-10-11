@@ -1,0 +1,112 @@
+=巴士电台接口API Web Service版=
+
+* [http://code.google.com/p/bus-fm-api/wiki/WebService#账号管理 账号管理]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#登录 登录]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#注册 注册]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#找回密码 找回密码]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#修改密码 修改密码]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#用户名是否可用 用户名是否可用]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#昵称是否可用 昵称是否可用]
+* [http://code.google.com/p/bus-fm-api/wiki/WebService#歌曲管理 歌曲管理]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#根据频道返回歌曲数据 根据频道返回歌曲数据]
+  * [http://code.google.com/p/bus-fm-api/wiki/WebService#歌曲json格式 歌曲json格式]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#根据账号返回收藏列表 根据账号返回收藏列表]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#歌曲是否被收藏 歌曲是否被收藏]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#收藏/取消收藏 收藏/取消收藏]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#收听列表 收听列表]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#推荐列表 推荐列表]
+ * [http://code.google.com/p/bus-fm-api/wiki/WebService#偏好管理 偏好管理]
+
+==账号管理==
+===登录===
+ * 调用方法：useraccount.login(string userid,string userpwd, string apikey)
+ * 参数说明：
+  * Userid:用户名/邮箱
+  * Userpwd:用户密码
+  * Apikey:应用授权ID
+ * 返回值：状态码|状态说明，如1|登录成功,0|密码错误
+===注册===
+ * 调用方法：useraccount.reg(string userid,string userpwd,string nickname, string apikey)
+ * 参数说明：
+  * Userid:用户名/邮箱
+  * Userpwd:用户密码
+  * Nickname:用户昵称
+  * Apikey:应用授权ID
+ * 返回值：状态码|状态说明，如1|注册成功,0|昵称被占用
+===找回密码===
+ * 调用方法：useraccount.resetPassword(string userid, string apikey)
+ * 参数说明：
+  * Userid:用户名/邮箱
+  * Apikey:应用授权ID
+ * 返回值：状态码|状态说明，如1|密码已发至邮箱,0|昵称被占用
+===修改密码===
+ *  调用方法：useraccount.resetPassword(string userid,string oldpwd,string newpwd, string apikey)
+ *  参数说明：
+  * Userid:用户名/邮箱
+  * Oldpwd:旧密码
+  * Newpwd:新密码
+  * Apikey:应用授权ID
+ * 返回值：状态码|状态说明，如1|修改成功,0|未知错误
+===用户名是否可用===
+ * 调用方法：useraccount.checkUsername(string username, string apikey)
+ * 参数说明：
+  * Username:用户名/邮箱
+  * Apikey:应用授权ID
+ * 返回值：状态码或错误描述，0为假，1为真，其他情况为错误描述
+===昵称是否可用===
+ * 调用方法：useraccount.checkNickname(string nickname, string apikey)
+ * 参数说明：
+  * Nickname:用户昵称
+  * Apikey:应用授权ID
+ * 返回值：状态码或错误描述，0为假，1为真，其他情况为错误描述
+==歌曲管理==
+===根据频道返回歌曲数据===
+ * 调用方法：musicdata.getListByChannel(string channelId, string apikey)
+ * 参数说明：
+  * ChannelID:频道ID
+  * Apikey:应用授权ID
+ * 返回值：json数组
+====歌曲json格式====
+{{{
+[
+    {
+	"songid":"1045",
+	"title":"If You Want To",
+	"location":"http://ftp.luoo.net/radio/radio93/02.mp3",
+	"artist":"Alligators",
+	"album":"Piggy and Cups",
+	"thumb":"http://www.luoo.net/wp-content/uploads/ds.jpg"
+    },
+    {
+	"songid":"1503",
+	"title":"Let Go of the Dream",
+	"location":"http://ftp.luoo.net/radio/radio133/03.mp3",
+	"artist":"Hurricane No.1",
+	"albutm":"Hurricane No.1",
+	"thumb":"http://t.douban.com/lpic/s3832173.jpg"
+    }
+]
+}}}
+===根据账号返回收藏列表===
+ * 调用方法：musicdata.getListByUser(string userid, string apikey)
+ * 参数说明：
+  * Userid:用户ID
+  * Apikey:应用授权ID
+ * 返回值：json数组 [http://code.google.com/p/bus-fm-api/wiki/WebService#歌曲json格式 格式]
+===歌曲是否被收藏===
+ * 调用方法：musicdata.isFaved(string userid,string songid, string apikey)
+ * 参数说明：
+  * Userid:用户ID
+  * Songid:歌曲ID
+  * Apikey:应用授权ID
+ * 返回值：状态码或错误描述，0为假，1为真，其他情况为错误描述
+===收藏/取消收藏===
+ * 调用方法：musicdata.FaveThis(string userid,string songid, string apikey)
+ * 参数说明：
+  * Userid:用户ID
+  * Songid:歌曲ID
+  * Apikey:应用授权ID
+ * 返回值：状态码|状态描述，如1|收藏成功，1|取消收藏成功，0|未知错误
+===收听列表===
+===推荐列表===
+===偏好管理===

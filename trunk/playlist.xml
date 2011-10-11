@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<player>
+<song path="http://www.yxbhh.org/cd/%C1%F7%D0%D0/%D2%F4%C0%D6%CC%EC%CC%C3/17/She.mp3" title="she " author="suede" album="live at denmark"  />
+<song path="http://arts.uwaterloo.ca/~crcproj/PPDB/PHPFiles/coldplay_beautiful_world.mp3" title="parachutes" author="coldplay" album="parachutes"  />
+<song path="http://thepassingstatic.com/audio/Sparklehorse%20-%20Shade%20and%20Honey.mp3" title="shade and honey " author="sparklehorse   " album="dreamt for light years in the belly of a "  />
+<song path="http://ftp.luoo.net/radio/radio1/8.mp3" title="Until June" author="Until June" album="go" thumb="./uploads/20101027134645_pxxjzd.jpg" />
+<song path="http://ftp.luoo.net/radio/radio1/2.mp3" title="if you want me" author="The Kings of Convenience" album="Kings of Convenience" thumb="./uploads/20101027133004_fgodbw.jpg" />
+</player>

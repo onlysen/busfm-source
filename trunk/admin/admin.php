@@ -1,0 +1,2113 @@
+<?php
+require_once'includes/global.php';
+require_once'includes/admin.php';
+require_once'languages/'.$config['site_language'].'/admin.php';
+$action		=empty($_GET['action'])?'':trim($_GET['action']);
+$do			=empty($_GET['do'])?'':trim($_GET['do']);
+/**************************************************************************************/
+if($action==''){
+	if($do==''){
+		$smarty=new smarty();smarty_header();
+		$smarty->display('login.htm');
+	}
+	if($do=='login'){
+		$admin_name=empty($_POST['admin_name'])?'':trim($_POST['admin_name']);
+		$admin_password=empty($_POST['admin_password'])?'':trim($_POST['admin_password']);
+		if(empty($admin_name)){
+			message(array('text'=>$language['admin_name_is_empty'],'link'=>''));
+		}
+		if(empty($admin_password)){
+			message(array('text'=>$language['admin_password_is_empty'],'link'=>''));
+		}
+		$row=$db->getone("SELECT * FROM ".$db_prefix."admin WHERE admin_name='".$admin_name."' AND admin_password='".password($admin_password)."' ");
+		if($row){
+			if($row['admin_state']==0){
+				message(array('text'=>$language['admin_is_lock'],'link'=>''));
+			}
+			$_SESSION['admin_id']=$row['admin_id'];
+			$_SESSION['admin_name']=$row['admin_name'];
+			$_SESSION['admin_permissions']=$row['admin_permissions'];
+		}else{
+			message(array('text'=>$language['login_is_failure'],'link'=>''));
+		}
+		admin_log('login','system',$_SESSION['admin_name']);
+		clear_cache();
+		message(array('text'=>$language['login_is_success'],'link'=>'?action=main'));
+	}
+	if($do=='logout'){
+		admin_log('logout','system',$_SESSION['admin_name']);
+		unset($_SESSION['admin_id'],$_SESSION['admin_name'],$_SESSION['admin_permissions']);
+		clear_cache();
+		message(array('text'=>$language['logout_is_success'],'link'=>get_self()));
+	}
+}
+/**************************************************************************************/
+if($action=='config'){
+	if($do==''||$do=='config'){
+		check_permissions('config');
+		$tempdate_dir=$language_dir=array();
+		if($handle=opendir("templates")){
+			$i=1;
+			while(false!==($dir=readdir($handle))){
+				if ($dir!="."&&$dir!=".."&&$dir!="admin"){
+					if(is_dir("templates/".$dir)){
+						$tempdate_dir[$i]['no']=$i;
+						$tempdate_dir[$i]['folder']=$dir;
+						$tempdate_dir[$i]['thumb']="templates/".$dir."/thumb.png";
+						$tempdate_dir[$i]['info']=file_get_contents("templates/".$dir."/info.txt");
+						$i++;
+					}
+				}
+
+			}
+			closedir($handle);
+		}
+		if($handle=opendir("languages")){
+			$i=1;
+			while(false!==($dir=readdir($handle))){
+				if ($dir!="."&&$dir!=".."){
+					if(is_dir("languages/".$dir)){
+						$language_dir[$i]['no']=$i;
+						$language_dir[$i]['folder']=$dir;
+						$language_dir[$i]['info']=file_get_contents("languages/".$dir."/info.txt");
+						$i++;
+					}
+				}
+			}
+			closedir($handle);
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign("config",str_replace(encode_char(explode(",","32,45,32,80,111,119,101,114,101,100,32,98,121,32,87,101,101,100,67,77,83")),'',$config));
+		$smarty->assign("template_dir",$tempdate_dir);
+		$smarty->assign("language_dir",$language_dir);
+		$smarty->display('config.htm');
+	}
+	if($do=='config_update'){
+		check_permissions('config');
+		$site_name=empty($_POST['site_name'])?'':addslashes(trim($_POST['site_name']));
+		$copyright=empty($_POST['copyright'])?'':trim($_POST['copyright']);
+		$site_icp=empty($_POST['site_icp'])?'':addslashes(trim($_POST['site_icp']));
+		$site_keywords=empty($_POST['site_keywords'])?'':addslashes(trim($_POST['site_keywords']));
+		$site_description=empty($_POST['site_description'])?'':addslashes(trim($_POST['site_description']));
+		$site_notice=empty($_POST['site_notice'])?'':addslashes(trim($_POST['site_notice']));
+		$site_language=empty($_POST['site_language'])?'':addslashes(trim($_POST['site_language']));
+		$site_template=empty($_POST['site_template'])?'':addslashes(trim($_POST['site_template']));
+		$site_open=empty($_POST['site_open'])?'':addslashes(trim($_POST['site_open']));
+		$site_close_text=empty($_POST['site_close_text'])?'':addslashes(trim($_POST['site_close_text']));
+		$site_online_over=empty($_POST['site_online_over'])?'':intval($_POST['site_online_over']);
+		$site_rewrite=empty($_POST['site_rewrite'])?'':addslashes(trim($_POST['site_rewrite']));
+		$content_hot_list_size=empty($_POST['content_hot_list_size'])?'':intval($_POST['content_hot_list_size']);
+		$content_hot_title_size=empty($_POST['content_hot_title_size'])?'':intval($_POST['content_hot_title_size']);
+		$content_best_list_size=empty($_POST['content_best_list_size'])?'':intval($_POST['content_best_list_size']);
+		$content_best_title_size=empty($_POST['content_best_title_size'])?'':intval($_POST['content_best_title_size']);
+		$content_index_comment_list_size=empty($_POST['content_index_comment_list_size'])?'':intval($_POST['content_index_comment_list_size']);
+		$content_index_comment_content_size=empty($_POST['content_index_comment_content_size'])?'':intval($_POST['content_index_comment_content_size']);
+		$content_comment_list_size=empty($_POST['content_comment_list_size'])?'':intval($_POST['content_comment_list_size']);
+		$content_search_list_size=empty($_POST['content_search_list_size'])?'':intval($_POST['content_search_list_size']);
+
+		$member_open=empty($_POST['member_open'])?'':addslashes(trim($_POST['member_open']));
+		$member_validation=empty($_POST['member_validation'])?'':addslashes(trim($_POST['member_validation']));
+		$member_index_join_size=empty($_POST['member_index_join_size'])?'':intval($_POST['member_index_join_size']);
+
+		$smtp_server=empty($_POST['smtp_server'])?'':addslashes(trim($_POST['smtp_server']));
+		$smtp_port=empty($_POST['smtp_port'])?'':addslashes(trim($_POST['smtp_port']));
+		$smtp_user=empty($_POST['smtp_user'])?'':addslashes(trim($_POST['smtp_user']));
+		$smtp_password=empty($_POST['smtp_password'])?'':addslashes(trim($_POST['smtp_password']));
+
+		$image_thumb_open=empty($_POST['image_thumb_open'])?'':addslashes(trim($_POST['image_thumb_open']));
+		$image_thumb_width=empty($_POST['image_thumb_width'])?'':intval($_POST['image_thumb_width']);
+		$image_thumb_height=empty($_POST['image_thumb_height'])?'':intval($_POST['image_thumb_height']);
+		$image_text_open=empty($_POST['image_text_open'])?'':addslashes(trim($_POST['image_text_open']));
+		$image_text=empty($_POST['image_text'])?'':addslashes(trim($_POST['image_text']));
+		$image_pos=empty($_POST['image_pos'])?'':intval($_POST['image_pos']);
+		$image_file=upload($_FILES['image_file'],false);
+		$image_file_old=empty($_POST['image_file_old'])?'':addslashes(trim($_POST['image_file_old']));
+		$image_file_delete=empty($_POST['image_file_delete'])?'':addslashes(trim($_POST['image_file_delete']));
+		if($site_rewrite=='yes'){
+			$rewrite="RewriteEngine On\n";
+			$rewrite.="RewriteRule ^index\.html\$ index.php\n";
+			$rewrite.="RewriteRule ^content-([0-9]+)\.html\$ content.php?id=\$1\n";
+			$rewrite.="RewriteRule ^page-([0-9]+)\.html\$ page.php?id=\$1\n";
+			$rewrite.="RewriteRule ^channel-([0-9]+)\.html\$ channel.php?id=\$1\n";
+			$rewrite.="RewriteRule ^channel-([0-9]+)-p([0-9]+)\.html\$ channel.php?id=\$1&page=\$2\n";
+			$rewrite.="RewriteRule ^channel-([0-9]+)-([0-9]+)\.html\$ channel.php?id=\$1&category_id=\$2\n";
+			$rewrite.="RewriteRule ^channel-([0-9]+)-([0-9]+)-p([0-9]+)\.html\$ channel.php?id=\$1&category_id=\$2&page=\$3\n";
+			@file_put_contents('./.htaccess',$rewrite);
+			@chmod('./.htaccess',"0644");
+		}else{
+			@unlink("./.htaccess");
+		}
+		$update['site_name']=$site_name;
+		$update['site_icp']=$site_icp;
+		$update['site_keywords']=$site_keywords;
+		$update['site_description']=$site_description;
+		$update['site_notice']=$site_notice;
+		$update['site_language']=$site_language;
+		$update['site_template']=$site_template;
+		$update['site_open']=$site_open;
+		$update['site_close_text']=$site_close_text;
+		$update['site_online_over']=$site_online_over;
+		$update['site_rewrite']=$site_rewrite;
+		$update['content_hot_list_size']=$content_hot_list_size;
+		$update['content_hot_title_size']=$content_hot_title_size;
+		$update['content_best_list_size']=$content_best_list_size;
+		$update['content_best_title_size']=$content_best_title_size;
+		$update['content_index_comment_list_size']=$content_index_comment_list_size;
+		$update['content_index_comment_content_size']=$content_index_comment_content_size;
+		$update['content_comment_list_size']=$content_comment_list_size;
+		$update['content_search_list_size']=$content_search_list_size;
+		$update['member_open']=$member_open;
+		$update['member_validation']=$member_validation;
+		$update['member_index_join_size']=$member_index_join_size;
+		$update['smtp_server']=$smtp_server;
+		$update['smtp_port']=$smtp_port;
+		$update['smtp_user']=$smtp_user;
+		$update['smtp_password']=$smtp_password;
+		$update['image_thumb_open']=$image_thumb_open;
+		$update['image_thumb_width']=$image_thumb_width;
+		$update['image_thumb_height']=$image_thumb_height;
+		$update['image_text_open']=$image_text_open;
+		$update['image_pos']=$image_pos;
+		$update['image_text']=$image_text;
+		if(!empty($image_file)){
+			@unlink(ROOT_PATH."/uploads/".$image_file_old);
+			$update['image_file']=$image_file;
+		}
+		if(!empty($image_file_delete)){
+			@unlink(ROOT_PATH."/uploads/".$image_file_delete);
+			$update['image_file']='';
+		}
+		$db->update($db_prefix."config",array('config_value'=>serialize($update)),"config_type='config'");
+		clear_cache();
+		admin_log('update','config','');
+		message(array('text'=>$language['config_update_is_success'],'link'=>'?action=config&do=config'));
+	}
+	if($do=='menu_list'){
+		check_permissions('menu_read');
+		$menu_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."menu ORDER BY menu_id ASC");
+		if($res){
+			foreach($res as $row){
+				$menu_list[$row['menu_id']]['id']=$row['menu_id'];
+				$menu_list[$row['menu_id']]['name']=$row['menu_name'];
+				$menu_list[$row['menu_id']]['link']=$row['menu_link'];
+				$menu_list[$row['menu_id']]['mode']=$row['menu_mode'];
+				$menu_list[$row['menu_id']]['target']=$row['menu_target'];
+				$menu_list[$row['menu_id']]['state']=$row['menu_state'];
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('menu_list',$menu_list);
+		$smarty->display('menu_list.htm');
+	}
+	if($do=='menu_add'){
+		check_permissions('menu_write');
+		$menu=array();
+		$menu['id']=0;
+		$menu['name']='';
+		$menu['link']='';
+		$menu['target']=0;
+		$menu['mode']=0;
+		$menu['order']=1;
+		$menu['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('menu',$menu);
+		$smarty->assign('mode','insert');
+		$smarty->display('menu_info.htm');
+	}
+	if($do=='menu_insert'){
+		check_permissions('menu_write');
+		$menu_name=empty($_POST['menu_name'])?'':addslashes(trim($_POST['menu_name']));
+		$menu_link=empty($_POST['menu_link'])?'':addslashes(trim($_POST['menu_link']));
+		$menu_target=intval($_POST['menu_target'])==0?0:1;
+		$menu_mode=intval($_POST['menu_mode'])==0?0:1;
+		$menu_order=empty($_POST['menu_order'])?'':intval($_POST['menu_order']);
+		$menu_state=empty($_POST['menu_state'])?'':intval($_POST['menu_state']);
+		$insert=array();
+		$insert['menu_name']=$menu_name;
+		$insert['menu_link']=$menu_link;
+		$insert['menu_target']=$menu_target;
+		$insert['menu_mode']=$menu_mode;
+		$insert['menu_order']=$menu_order;
+		$insert['menu_state']=$menu_state;
+		$db->insert($db_prefix."menu",$insert);
+		admin_log('insert','menu',$menu_name);
+		clear_cache();
+		message(array('text'=>$language['menu_insert_is_success'],'link'=>'?action=config&do=menu_list'));
+	}
+
+	if($do=='menu_edit'){
+		check_permissions('menu_write');
+		$menu_id=empty($_GET['menu_id'])?'':intval($_GET['menu_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."menu WHERE menu_id='$menu_id'");
+		$menu=array();
+		$menu['id']=$row['menu_id'];
+		$menu['name']=$row['menu_name'];
+		$menu['link']=$row['menu_link'];
+		$menu['target']=$row['menu_target'];
+		$menu['mode']=$row['menu_mode'];
+		$menu['order']=$row['menu_order'];
+		$menu['state']=$row['menu_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('menu',$menu);
+		$smarty->assign('mode','update');
+		$smarty->display('menu_info.htm');
+	}
+	if($do=='menu_update'){
+		check_permissions('menu_write');
+		$menu_id=empty($_POST['menu_id'])?'':intval($_POST['menu_id']);
+		$menu_name=empty($_POST['menu_name'])?'':addslashes(trim($_POST['menu_name']));
+		$menu_link=empty($_POST['menu_link'])?'':addslashes(trim($_POST['menu_link']));
+
+		$menu_target=intval($_POST['menu_target'])==0?0:1;
+		$menu_mode=intval($_POST['menu_mode'])==0?0:1;
+
+		$menu_order=empty($_POST['menu_order'])?'':intval($_POST['menu_order']);
+		$menu_state=empty($_POST['menu_state'])?'':intval($_POST['menu_state']);
+		$update=array();
+		$update['menu_name']=$menu_name;
+		$update['menu_link']=$menu_link;
+		$update['menu_target']=$menu_target;
+		$update['menu_mode']=$menu_mode;
+		$update['menu_order']=$menu_order;
+		$update['menu_state']=$menu_state;
+		$db->update($db_prefix."menu",$update,"menu_id=$menu_id");
+		admin_log('update','menu',$menu_name);
+		clear_cache();
+		message(array('text'=>$language['menu_update_is_success'],'link'=>'?action=config&do=menu_list'));
+	}
+	if($do=='menu_delete'){
+		check_permissions('menu_delete');
+		$menu_id=empty($_GET['menu_id'])?'':intval($_GET['menu_id']);
+		$menu_name=get_menu_name($menu_id);
+		$db->delete($db_prefix."menu","menu_id=$menu_id");
+		admin_log('delete','menu',$menu_name);
+		clear_cache();
+		message(array('text'=>$language['menu_delete_is_success'],'link'=>'?action=config&do=menu_list'));
+	}
+	if($do=='admin_list'){
+		check_permissions('admin_read');
+		$admin_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."admin ORDER BY admin_id ASC");
+		if($res){
+			foreach($res as $row){
+				$admin_list[$row['admin_id']]['id']=$row['admin_id'];
+				$admin_list[$row['admin_id']]['name']=$row['admin_name'];
+				$admin_list[$row['admin_id']]['password']=$row['admin_password'];
+				$admin_list[$row['admin_id']]['state']=$row['admin_state'];
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('admin_list',$admin_list);
+		$smarty->display('admin_list.htm');
+	}
+	if($do=='admin_add'){
+		check_permissions('admin_write');
+		$admin=array();
+		$admin['id']=0;
+		$admin['name']='';
+		$admin['password']='';
+		$admin['permissions']='';
+		$admin['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('admin',$admin);
+		$smarty->assign('mode','insert');
+		$smarty->display('admin_info.htm');
+	}
+	if($do=='admin_insert'){
+		check_permissions('admin_write');
+		$admin_name=empty($_POST['admin_name'])?'':addslashes(trim($_POST['admin_name']));
+		$admin_password=empty($_POST['admin_password'])?'':addslashes(trim($_POST['admin_password']));
+		$admin_permissions=empty($_POST['admin_permissions'])?'':addslashes(trim($_POST['admin_permissions']));
+		$admin_state=empty($_POST['admin_state'])?0:intval($_POST['admin_state']);
+		if(!check_repeat('admin','admin_name',$admin_name)){
+			message(array('text'=>$language['admin_name_is_repeat'],'link'=>''));
+		}
+		$insert=array();
+		$insert['admin_name']=$admin_name;
+		$insert['admin_password']=password($admin_password);
+		$insert['admin_permissions']=$admin_permissions;
+		$insert['admin_state']=$admin_state;
+		$db->insert($db_prefix."admin",$insert);
+		admin_log('insert','admin',$admin_name);
+		clear_cache();
+		message(array('text'=>$language['admin_insert_is_success'],'link'=>'?action=config&do=admin_list'));
+	}
+	if($do=='admin_edit'){
+		check_permissions('admin_write');
+		$admin_id=empty($_GET['admin_id'])?'':intval($_GET['admin_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."admin WHERE admin_id='$admin_id'");
+
+		$admin=array();
+		$admin['id']=$row['admin_id'];
+		$admin['name']=$row['admin_name'];
+		$admin['password']=$row['admin_password'];
+		$admin['permissions']=$row['admin_permissions'];
+		$admin['state']=$row['admin_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('admin',$admin);
+		$smarty->assign('mode','update');
+		$smarty->display('admin_info.htm');
+	}
+	if($do=='admin_update'){
+		check_permissions('admin_write');
+		$admin_id=empty($_POST['admin_id'])?'':intval($_POST['admin_id']);
+		$admin_name=empty($_POST['admin_name'])?'':addslashes(trim($_POST['admin_name']));
+		$admin_password=empty($_POST['admin_password'])?'':addslashes(trim($_POST['admin_password']));
+		$admin_permissions=empty($_POST['admin_permissions'])?'':addslashes(trim($_POST['admin_permissions']));
+		$admin_state=empty($_POST['admin_state'])?0:intval($_POST['admin_state']);
+		$update=array();
+		$update['admin_name']=$admin_name;
+		if(!empty($admin_password)){
+			$update['admin_password']=password($admin_password);
+		}
+		$update['admin_permissions']=$admin_permissions;
+		$update['admin_state']=$admin_state;
+		$db->update($db_prefix."admin",$update,"admin_id=$admin_id");
+		admin_log('update','admin',$admin_name);
+		clear_cache();
+		message(array('text'=>$language['admin_update_is_success'],'link'=>'?action=config&do=admin_list'));
+	}
+	if($do=='admin_delete'){
+		check_permissions('admin_delete');
+		$admin_id=empty($_GET['admin_id'])?'':intval($_GET['admin_id']);
+		$admin_name=get_admin_name($admin_id);
+		$db->delete($db_prefix."admin","admin_id=$admin_id");
+		admin_log('delete','admin',$admin_name);
+		clear_cache();
+		message(array('text'=>$language['admin_delete_is_success'],'link'=>'?action=config&do=admin_list'));
+	}
+}
+/**************************************************************************************/
+if($action=='main'){
+	if($do==''){
+		check_login();
+		$system_info=array();
+		$system_info['SERVER_TIME']=date("Y-m-d h:i:s",$_SERVER['REQUEST_TIME']);
+		$system_info['SERVER_PORT']=$_SERVER['SERVER_PORT'];
+		$system_info['PHP_OS']=@PHP_OS;
+		$system_info['SERVER_NAME']=$_SERVER['SERVER_NAME'];
+		$system_info['SERVER_SOFTWARE']=$_SERVER['SERVER_SOFTWARE'];
+		$system_info['DB_VERSION']=$db->version();
+
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('system_info',$system_info);
+		$smarty->assign('domain',$_SERVER ['HTTP_HOST'].$_SERVER['PHP_SELF']);
+		$smarty->display('main.htm');
+	}
+	if($do=='log_list'){
+		check_login();
+		$log_list=array();
+		$sql="SELECT * FROM ".$db_prefix."admin_log";
+		$page_size=30;
+		$page_current=isset($_GET['page'])?intval($_GET['page']):1;
+		$count=$GLOBALS['db']->getcount($sql);
+		$res=$GLOBALS['db']->getall($sql." order by log_time desc limit ".(($page_current-1)*$page_size).",".$page_size);
+		if($count>0){
+				$no=$count-(($page_current-1)*$page_size);
+				foreach($res as $row){
+					$log_list[$no]['no']=$no;
+					$log_list[$no]['time']=date("Y-m-d h:i:s",$row['log_time']);
+					$log_list[$no]['info']=$row['log_info'];
+					$log_list[$no]['ip']=$row['log_ip'];
+					$log_list[$no]['address']=get_ip_address($row['log_ip']);
+					$log_list[$no]['agent']=get_os($row['log_agent'])."/".get_bs($row['log_agent']);
+					$log_list[$no]['admin']=get_admin_name($row['admin_id']);
+					$no--;
+				}
+				$pagebar=pagebar(get_self(),"action=main&do=log_list&",$page_current,$page_size,$count);
+		}else{
+				$pagebar="";
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('log_list',$log_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('log_list.htm');
+	}
+	if($do=='log_clear'){
+		check_permissions('all');
+		$db->delete($db_prefix."admin_log","log_time<UNIX_TIMESTAMP(NOW())-259200");
+		admin_log('clear','log','');
+		message(array('text'=>$language['log_clear_is_success'],'link'=>'?action=main&do=log_list'));
+	}
+	if($do=='clear_cache'){ 
+		check_login();
+		clear_cache();
+		admin_log('clear','cache','');
+		message(array('text'=>$language['clear_cache_is_succes'],'link'=>'?action=main'));
+	}
+	if($do=='online_list'){
+		check_login();
+		$online_list=array();
+		$sql="SELECT * FROM ".$db_prefix."online";
+		$page_size=30;
+		$page_current=isset($_GET['page'])?intval($_GET['page']):1;
+		$count=$GLOBALS['db']->getcount($sql);
+		$res=$GLOBALS['db']->getall($sql." order by online_time desc limit ".(($page_current-1)*$page_size).",".$page_size);
+		if($count>0){
+				$no=$count-(($page_current-1)*$page_size);
+				foreach($res as $row){
+					$online_list[$no]['no']=$no;
+					$online_list[$no]['time']=date("Y-m-d h:i:s",$row['online_time']);
+					$online_list[$no]['url']=$row['online_url'];
+					$online_list[$no]['ip']=$row['online_ip'];
+					$online_list[$no]['address']=get_ip_address($row['online_ip']);
+					$online_list[$no]['agent']=$row['online_agent'];
+					$no--;
+				}
+				$pagebar=pagebar(get_self(),"action=main&do=online_list&",$page_current,$page_size,$count);
+		}else{
+				$pagebar="";
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('online_list',$online_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('online_list.htm');
+	}
+
+}
+/**************************************************************************************/
+if($action=='content'){
+	if($do=='channel_list'){
+		check_permissions('channel_read');
+		$channel_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."content_channel order by channel_id asc");
+		if($res){
+			foreach($res as $row){
+				$channel_list[$row['channel_id']]['id']=$row['channel_id'];
+				$channel_list[$row['channel_id']]['name']=$row['channel_name'];
+				$channel_list[$row['channel_id']]['description']=$row['channel_description'];
+				$num=$GLOBALS['db']->getone("SELECT count(*) as num FROM ".$db_prefix."content WHERE channel_id=".$row['channel_id']." order by channel_id asc");
+				$channel_list[$row['channel_id']]['num']=$num['num']=0?0:$num['num'];
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('channel_list',$channel_list);
+		$smarty->display('channel_list.htm');
+	}
+	if($do=='channel_add'){
+		check_permissions('channel_write');
+		$channel=array();
+		$channel['id']=0;
+		$channel['name']='';
+		$channel['description']='';
+		$channel['banner']='';
+		$channel['index']=0;
+		$channel['index_truncate']=10;
+		$channel['index_size']=10;
+		$channel['index_style']=1;
+		$channel['list_truncate']=10;
+		$channel['list_size']=10;
+		$channel['list_style']=1;
+		$channel['content_style']=1;
+		$channel['read_permissions']=-1;
+		$channel['write_permissions']=-2;
+		$channel['comment_permissions']=0;
+		$channel['sort']=0;
+		$channel['upload_ext']='jpg,png,gif,bmp,zip,rar,tar,7z,torrent,mp3,wma,swf,doc,docx,xls,xlsx,ppt,pptx,mdb,mdbx';
+		$channel['cache']=1;
+		$channel['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('channel',$channel);
+		$smarty->assign('member_group',get_group_list());
+		$smarty->assign('mode','insert');
+		$smarty->display('channel_info.htm');
+	}
+	if($do=='channel_insert'){
+		check_permissions('channel_write');
+		$channel_name=empty($_POST['channel_name'])?'':addslashes(trim($_POST['channel_name']));
+		$channel_description=empty($_POST['channel_description'])?'':addslashes(trim($_POST['channel_description']));
+		$channel_banner=upload($_FILES['channel_banner']);
+		$channel_index=empty($_POST['channel_index'])?0:intval($_POST['channel_index']);
+		$channel_index_truncate=empty($_POST['channel_index_truncate'])?0:intval($_POST['channel_index_truncate']);
+		$channel_index_size=empty($_POST['channel_index_size'])?0:intval($_POST['channel_index_size']);
+		$channel_index_style=empty($_POST['channel_index_style'])?0:intval($_POST['channel_index_style']);
+		$channel_list_truncate=empty($_POST['channel_list_truncate'])?0:intval($_POST['channel_list_truncate']);
+		$channel_list_size=empty($_POST['channel_list_size'])?0:intval($_POST['channel_list_size']);
+		$channel_list_style=empty($_POST['channel_list_style'])?0:intval($_POST['channel_list_style']);
+		$channel_content_style=empty($_POST['channel_content_style'])?0:intval($_POST['channel_content_style']);
+		$channel_sort=empty($_POST['channel_sort'])?0:intval($_POST['channel_sort']);
+		$channel_read_permissions=empty($_POST['channel_read_permissions'])?0:intval($_POST['channel_read_permissions']);
+		$channel_write_permissions=empty($_POST['channel_write_permissions'])?0:intval($_POST['channel_write_permissions']);
+		$channel_comment_permissions=empty($_POST['channel_comment_permissions'])?0:intval($_POST['channel_comment_permissions']);
+		$channel_upload_ext=empty($_POST['channel_upload_ext'])?'':addslashes(trim($_POST['channel_upload_ext']));
+		$channel_cache=empty($_POST['channel_cache'])?0:intval($_POST['channel_cache']);
+		$channel_state=empty($_POST['channel_state'])?0:intval($_POST['channel_state']);
+		$insert=array();
+		$insert['channel_name']=$channel_name;
+		$insert['channel_description']=$channel_description;
+		$insert['channel_banner']=$channel_banner;
+		$insert['channel_index']=$channel_index;
+		$insert['channel_index_truncate']=$channel_index_truncate;
+		$insert['channel_index_size']=$channel_index_size;
+		$insert['channel_index_style']=$channel_index_style;
+		$insert['channel_list_truncate']=$channel_list_truncate;
+		$insert['channel_list_size']=$channel_list_size;
+		$insert['channel_list_style']=$channel_list_style;
+		$insert['channel_content_style']=$channel_content_style;
+		$insert['channel_sort']=$channel_sort;
+		$insert['channel_read_permissions']=$channel_read_permissions;
+		$insert['channel_write_permissions']=$channel_write_permissions;
+		$insert['channel_comment_permissions']=$channel_comment_permissions;
+		$insert['channel_upload_ext']=$channel_upload_ext;
+		$insert['channel_cache']=$channel_cache;
+		$insert['channel_state']=$channel_state;
+		$db->insert($db_prefix."content_channel",$insert);
+		admin_log('insert','channel',$channel_name);
+		clear_cache();
+		message(array('text'=>$language['channel_insert_is_success'],'link'=>'?action=content&do=channel_list'));
+	}
+	if($do=='channel_edit'){
+		check_permissions('channel_write');
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."content_channel WHERE channel_id='$channel_id'");
+		$channel=array();
+		$channel['id']=$row['channel_id'];
+		$channel['name']=$row['channel_name'];
+		$channel['description']=$row['channel_description'];
+		$channel['banner']=$row['channel_banner'];
+		$channel['index']=$row['channel_index'];
+		$channel['index_truncate']=$row['channel_index_truncate'];
+		$channel['index_size']=$row['channel_index_size'];
+		$channel['index_style']=$row['channel_index_style'];
+		$channel['list_truncate']=$row['channel_list_truncate'];
+		$channel['list_size']=$row['channel_list_size'];
+		$channel['list_style']=$row['channel_list_style'];
+		$channel['content_style']=$row['channel_content_style'];
+		$channel['read_permissions']=$row['channel_read_permissions'];
+		$channel['write_permissions']=$row['channel_write_permissions'];
+		$channel['comment_permissions']=$row['channel_comment_permissions'];
+		$channel['sort']=$row['channel_sort'];
+		$channel['upload_ext']=$row['channel_upload_ext'];
+		$channel['cache']=$row['channel_cache'];
+		$channel['state']=$row['channel_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('channel',$channel);
+		$smarty->assign('member_group',get_group_list());
+		$smarty->assign('mode','update');
+		$smarty->display('channel_info.htm');
+	}
+	if($do=='channel_update'){
+		check_permissions('channel_write');
+		$channel_id=empty($_POST['channel_id'])?0:intval($_POST['channel_id']);
+		$channel_name=empty($_POST['channel_name'])?'':addslashes(trim($_POST['channel_name']));
+		$channel_description=empty($_POST['channel_description'])?'':addslashes(trim($_POST['channel_description']));
+		$channel_banner=upload($_FILES['channel_banner']);
+		$channel_banner_old=empty($_POST['channel_banner_old'])?'':trim($_POST['channel_banner_old']);
+		$channel_banner_delete=empty($_POST['channel_banner_delete'])?'':trim($_POST['channel_banner_delete']);
+		$channel_index=empty($_POST['channel_index'])?0:intval($_POST['channel_index']);
+		$channel_index_truncate=empty($_POST['channel_index_truncate'])?0:intval($_POST['channel_index_truncate']);
+		$channel_index_size=empty($_POST['channel_index_size'])?0:intval($_POST['channel_index_size']);
+		$channel_index_style=empty($_POST['channel_index_style'])?0:intval($_POST['channel_index_style']);
+		$channel_list_truncate=empty($_POST['channel_list_truncate'])?0:intval($_POST['channel_list_truncate']);
+		$channel_list_size=empty($_POST['channel_list_size'])?0:intval($_POST['channel_list_size']);
+		$channel_list_style=empty($_POST['channel_list_style'])?0:intval($_POST['channel_list_style']);
+		$channel_content_style=empty($_POST['channel_content_style'])?0:intval($_POST['channel_content_style']);
+		$channel_sort=empty($_POST['channel_sort'])?0:intval($_POST['channel_sort']);
+		$channel_read_permissions=empty($_POST['channel_read_permissions'])?0:intval($_POST['channel_read_permissions']);
+		$channel_write_permissions=empty($_POST['channel_write_permissions'])?0:intval($_POST['channel_write_permissions']);
+		$channel_comment_permissions=empty($_POST['channel_comment_permissions'])?0:intval($_POST['channel_comment_permissions']);
+		$channel_upload_ext=empty($_POST['channel_upload_ext'])?'':addslashes(trim($_POST['channel_upload_ext']));
+		$channel_cache=empty($_POST['channel_cache'])?0:intval($_POST['channel_cache']);
+		$channel_state=empty($_POST['channel_state'])?0:intval($_POST['channel_state']);
+		$update=array();
+		$update['channel_name']=$channel_name;
+		$update['channel_description']=$channel_description;
+		if(!empty($channel_banner)){
+			@unlink(ROOT_PATH.'/uploads/'.$channel_banner_old);
+			$update['channel_banner']=$channel_banner;
+		}
+		if(!empty($channel_banner_delete)){
+			@unlink(ROOT_PATH.'/uploads/'.$channel_banner_delete);
+			$update['channel_banner']='';
+		}
+		$update['channel_index']=$channel_index;
+		$update['channel_index_truncate']=$channel_index_truncate;
+		$update['channel_index_size']=$channel_index_size;
+		$update['channel_index_style']=$channel_index_style;
+		$update['channel_list_truncate']=$channel_list_truncate;
+		$update['channel_list_size']=$channel_list_size;
+		$update['channel_list_style']=$channel_list_style;
+		$update['channel_content_style']=$channel_content_style;
+		$update['channel_sort']=$channel_sort;
+		$update['channel_read_permissions']=$channel_read_permissions;
+		$update['channel_write_permissions']=$channel_write_permissions;
+		$update['channel_comment_permissions']=$channel_comment_permissions;
+		$update['channel_upload_ext']=$channel_upload_ext;
+		$update['channel_cache']=$channel_cache;
+		$update['channel_state']=$channel_state;
+		$db->update($db_prefix."content_channel",$update,"channel_id=$channel_id");
+		admin_log('update','channel',$channel_name);
+		clear_cache();
+		message(array('text'=>$language['channel_update_is_success'],'link'=>'?action=content&do=channel_list'));
+	}
+	if($do=='channel_delete'){
+		check_permissions('channel_delete');
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$channel_name=get_channel_name($channel_id);
+		//读取内容并删除相关联的杂项
+		$res=$db->getall("SELECT content_id,content_thumb FROM ".$db_prefix."content WHERE channel_id=$channel_id");
+		foreach($res as $row){
+			if(!empty($row['content_thumb'])){
+				@unlink(ROOT_PATH.'/uploads/'.$row['content_thumb']);
+			}
+			//读取内容附件并且删除
+			$res2=$db->getall("SELECT attachment_name FROM ".$db_prefix."content_attachment WHERE content_id='".$row['content_id']."'");
+			foreach($res2 as $row2){
+				if(!empty($row2['attachment_name'])){
+					@unlink(ROOT_PATH.'/uploads/'.$row2['attachment_name']);
+				}
+			}
+			//删除内容连接
+			$db->delete($db_prefix."content_link","content_id=".$row['content_id']);
+			//删除内容附件
+			$db->delete($db_prefix."content_attachment","content_id=".$row['content_id']);
+			//删除内容评论
+			$db->delete($db_prefix."content_comment","content_id=".$row['content_id']);
+		}
+		//删除内容
+		$db->delete($db_prefix."content","channel_id=$channel_id");
+		//删除分类
+		$db->delete($db_prefix."content_category","channel_id=$channel_id");
+		//删除频道
+		$db->delete($db_prefix."content_channel","channel_id=$channel_id");
+		admin_log('delete','channel',$channel_name);
+		clear_cache();
+		message(array('text'=>$language['channel_delete_is_success'],'link'=>'?action=content&do=channel_list'));
+	}
+	if($do=='category_list'){//内容列表
+		check_permissions('category_read');
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('category_list',category_html_list(0,$channel_id));
+		$smarty->display('category_list.htm');
+	}
+	if($do=='category_add'){
+		check_permissions("category_write");
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$category=array();
+		$category['parent_id']=0;
+		$category['name']='';
+		$category['sort']=0;
+		$category['state']=1;
+		$smarty=new smarty();
+		$smarty->template_dir='templates/admin';
+		$smarty->assign('language',$language);
+		$smarty->assign('category',$category);
+		$smarty->assign('category_list',category_option_list(0,$channel_id,0));
+		$smarty->assign('mode','insert');
+		$smarty->display('category_info.htm');
+	}
+	if($do=='category_insert'){
+		check_permissions('category_write');
+		$channel_id=empty($_POST['channel_id'])?0:intval($_POST['channel_id']);
+		$category_name=empty($_POST['category_name'])?'':addslashes(trim($_POST['category_name']));
+		$category_sort=empty($_POST['category_sort'])?0:intval($_POST['category_sort']);
+		$category_state=empty($_POST['category_state'])?0:intval($_POST['category_state']);
+		$parent_id=empty($_POST['parent_id'])?0:intval($_POST['parent_id']);
+		if($parent_id==0){
+			$category_deep=0;
+		}else{
+			$row=$db->getone("SELECT category_deep FROM ".$db_prefix."content_category WHERE category_id=$parent_id");
+			$category_deep=$row['category_deep']+1;
+		}
+		$insert=array();
+		$insert['category_name']=$category_name;
+		$insert['category_deep']=$category_deep;
+		$insert['category_sort']=$category_sort;
+		$insert['category_state']=$category_state;
+		$insert['parent_id']=$parent_id;
+		$insert['channel_id']=$channel_id;
+		$db->insert($db_prefix."content_category",$insert);
+		admin_log('insert','category',$category_name);
+		clear_cache();
+		message(array('text'=>$language['category_insert_is_success'],'link'=>'?action=content&do=category_list&channel_id='.$channel_id));
+	}
+	if($do=='category_edit'){
+		check_permissions("category_write");
+		$category_id=empty($_GET['category_id'])?0:intval($_GET['category_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."content_category WHERE category_id='".$category_id."'");
+		$category=array();
+		$category['id']=$row['category_id'];
+		$category['name']=$row['category_name'];
+		$category['sort']=$row['category_sort'];
+		$category['state']=$row['category_state'];
+		$smarty=new smarty();
+		$smarty->template_dir='templates/admin';
+		$smarty->assign('language',$language);
+		$smarty->assign('category',$category);
+		$smarty->assign('category_list',category_option_list(0,$row['channel_id'],$row['parent_id']));
+		$smarty->assign('mode','update');
+		$smarty->display('category_info.htm');
+	}
+	if($do=='category_update'){
+		check_permissions('category_write');
+		$category_id=empty($_POST['category_id'])?0:intval($_POST['category_id']);
+		$channel_id=empty($_POST['channel_id'])?0:intval($_POST['channel_id']);
+		$category_name=empty($_POST['category_name'])?'':addslashes(trim($_POST['category_name']));
+		$category_sort=empty($_POST['category_sort'])?0:intval($_POST['category_sort']);
+		$category_state=empty($_POST['category_state'])?0:intval($_POST['category_state']);
+		$parent_id=empty($_POST['parent_id'])?0:intval($_POST['parent_id']);
+		if($parent_id==0){
+			$category_deep=0;
+		}else{
+			$row=$db->getone("SELECT category_deep FROM ".$db_prefix."content_category WHERE category_id=$parent_id");
+			$category_deep=$row['category_deep']+1;
+		}
+		$update=array();
+		$update['category_name']=$category_name;
+		$update['category_deep']=$category_deep;
+		$update['category_sort']=$category_sort;
+		$update['category_state']=$category_state;
+		$update['parent_id']=$parent_id;
+		$db->update($db_prefix."content_category",$update,"category_id=$category_id");
+		admin_log('update','category',$category_name);
+		clear_cache();
+		message(array('text'=>$language['category_update_is_success'],'link'=>'?action=content&do=category_list&channel_id='.$channel_id));
+	}
+	if($do=='category_delete'){
+		check_permissions('category_delete');
+		$channel_id=empty($_GET['channel_id'])?'':intval($_GET['channel_id']);
+		$category_id=empty($_GET['category_id'])?'':intval($_GET['category_id']);
+		$category_name=get_category_name($category_id);
+		$db->delete($db_prefix."content_category","category_id=$category_id");
+		admin_log('delete','category',$category_name);
+		clear_cache();
+		message(array('text'=>$language['category_delete_is_success'],'link'=>'?action=content&do=category_list&channel_id='.$channel_id));
+	}
+	if($do=='content_list'){
+		check_permissions("content_read");
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$sql="SELECT * FROM ".$db_prefix."content WHERE channel_id='".$channel_id."'";
+		if(!empty($_GET['category_id'])){
+			$sql.=" AND category_id='".intval($_GET['category_id'])."'";
+		}
+		if(!empty($_GET['keyword'])){
+			$sql.=" AND content_title like '%".trim($_GET['keyword'])."%'";
+		}
+		$sql.=" ORDER BY content_id DESC";
+		$page_size=15;
+		$page_current=isset($_GET['page'])&&is_numeric($_GET['page'])?intval($_GET['page']):1;
+		$count=$db->getcount($sql);
+		$res=$db->getall($sql." limit ".(($page_current-1)*$page_size).",".$page_size);
+		$content_list=array();
+		if($count>0){
+			foreach($res as $row){
+				$content_list[$row['content_id']]['id']=$row['content_id'];
+				$content_list[$row['content_id']]['title']=$row['content_title'];
+				$content_list[$row['content_id']]['thumb']=$row['content_thumb'];
+				if(substr($row['content_thumb'],0,4)=='http'){
+					$content_list[$row['content_id']]['thumb_http']=true;
+				}else{
+					$content_list[$row['content_id']]['thumb_http']=false;
+				}
+				$content_list[$row['content_id']]['password']=$row['content_password'];
+				$content_list[$row['content_id']]['time']=date("Y/m/d H:i:s",$row['content_time']);
+				$content_list[$row['content_id']]['comment_count']=$row['content_comment_count'];
+				$content_list[$row['content_id']]['channel_id']=$row['channel_id'];
+				$content_list[$row['content_id']]['category_id']=$row['category_id'];
+				$content_list[$row['content_id']]['category_name']=get_category_name($row['category_id']);
+			}
+			$parameter='action=content&do=content_list&channel_id='.$channel_id.'&';
+			if(!empty($_GET['category_id'])){
+				$parameter.="category_id='".intval($_GET['category_id'])."'";
+			}
+			if(!empty($_GET['keyword'])){
+				$parameter.="keyword='".trim($_GET['keyword'])."'";
+			}
+			$pagebar=pagebar(get_self(),$parameter,$page_current,$page_size,$count);
+		}else{
+			$pagebar="";
+		}
+		$smarty=new smarty();
+		$smarty->template_dir='templates/admin';
+		$smarty->assign('language',$language);
+		$smarty->assign('channel_name',get_channel_name($channel_id));
+		if(check_have_category($channel_id)){
+			$smarty->assign('category_list',category_option_list(0,$channel_id,0));
+		}else{
+			$smarty->assign('category_list','');
+		}
+		$smarty->assign('content_list',$content_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('content_list.htm');
+	}
+	if($do=='content_add'){
+		check_permissions("content_write");
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$content=array();
+		$content['channel_id']=$channel_id;
+		$content['id']=0;
+		$content['title']='';
+		$content['url']='';
+		$content['keywords']='';
+		$content['text']='';
+		$content['thumb']='';
+		$content['thumb_http']='http://';
+		$content['password']='';
+		$content['link']=array();
+		$content['attachment']=array();
+		$content['is_best']=0;
+		$content['is_comment']=1;
+		$content['state']=1;
+		$smarty=new smarty();
+		$smarty->template_dir='templates/admin';
+		$smarty->assign('language',$language);
+		$smarty->assign('content',$content);
+		if(check_have_category($channel_id)){
+			$smarty->assign('category_list',category_option_list(0,$channel_id,0));
+		}else{
+			$smarty->assign('category_list','');
+		}
+		$smarty->assign('mode','insert');
+		$smarty->display('content_info.htm');
+	}
+	if($do=='content_insert'){//插入内容
+		check_permissions("content_write");
+		$content_id=empty($_POST['content_id'])?0:intval($_POST['content_id']);
+		$content_title=empty($_POST['content_title'])?'':trim(addslashes($_POST['content_title']));
+		$content_url=empty($_POST['content_url'])?'':trim(addslashes($_POST['content_url']));
+		$content_keywords=empty($_POST['content_keywords'])?'':trim(addslashes($_POST['content_keywords']));
+		$content_text=empty($_POST['content_text'])?'':trim(addslashes($_POST['content_text']));
+		$content_password=empty($_POST['content_password'])?'':trim(addslashes($_POST['content_password']));
+		$content_is_best=empty($_POST['content_is_best'])?0:1;
+		$content_is_comment=empty($_POST['content_is_comment'])?0:1;
+		$content_state=empty($_POST['content_state'])?0:1;
+		$channel_id=empty($_POST['channel_id'])?0:intval($_POST['channel_id']);
+		$category_id=empty($_POST['category_id'])?0:intval($_POST['category_id']);
+		$content_thumb_http=empty($_POST['content_thumb_http'])?'':trim(addslashes($_POST['content_thumb_http']));
+		if($content_title==''){
+			message(array('text'=>$language['content_title_is_empty'],'link'=>''));
+		}
+		if($content_text==''){
+			//message(array('text'=>$language['content_text_is_empty'],'link'=>''));
+		}
+		$content_thumb=upload($_FILES['content_thumb'],false);
+		$insert=array();
+		$insert['content_title']=$content_title;
+		$insert['content_url']=$content_url;
+		$insert['content_keywords']=$content_keywords;
+		$insert['content_text']=$content_text;
+		$insert['content_password']=$content_password;
+		if(empty($content_thumb_http)||$content_thumb_http=='http://'){
+			if(!empty($content_thumb)){
+				if($config['image_thumb_open']=='yes'){
+					make_thumb(ROOT_PATH.'/uploads/'.$content_thumb,$config['image_thumb_width'],$config['image_thumb_height']);
+				}
+				$insert['content_thumb']=$content_thumb;
+			}else{
+				$insert['content_thumb']='';
+			}
+		}else{
+			$insert['content_thumb']=$content_thumb_http;
+		}
+		$insert['content_is_best']=$content_is_best;
+		$insert['content_is_comment']=$content_is_comment;
+		$insert['content_state']=$content_state;
+		$insert['content_time']=$_SERVER['REQUEST_TIME'];
+		$insert['channel_id']=$channel_id;
+		$insert['category_id']=$category_id;
+		//echo $db->insert($db_prefix."content",$insert,true);exit;
+		$db->insert($db_prefix."content",$insert);
+		$insert_content_id=$db->insert_id();
+		//插入内容连接
+		if(!empty($_POST['content_link'])){
+			foreach($_POST['content_link'] as $value){
+				if(!empty($value)){
+					$db->insert($db_prefix."content_link",array('link_url'=>$value,'content_id'=>$insert_content_id));
+				}
+			}
+		}
+		//插入内容附件
+		/*$content_attachment=upload($_FILES['content_attachment'],true,get_channel_upload_ext($channel_id));
+		foreach($content_attachment as $value){
+			if(!empty($value)){
+				$db->insert($db_prefix."content_attachment",array('attachment_name'=>$value,'content_id'=>$insert_content_id));
+				if($config['image_text_open']=='yes'){
+					make_watermark(ROOT_PATH.'/uploads/'.$value,ROOT_PATH.'/uploads/'.$config['image_file'],$config['image_pos'],$config['image_text']);
+				}
+			}
+		}*/
+		admin_log('insert','content',$content_title);
+		clear_cache();
+		message(array('text'=>$language['content_insert_is_success'],'link'=>'?action=content&do=content_list&channel_id='.$channel_id));
+	}
+
+	if($do=='content_edit'){//编辑内容
+		check_permissions("content_write");
+		$content_id=empty($_GET['content_id'])?0:intval($_GET['content_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."content WHERE content_id='".$content_id."'");
+		$content=array();
+		$content['id']=$row['content_id'];
+		$content['title']=$row['content_title'];
+		$content['url']=$row['content_url'];
+		$content['keywords']=$row['content_keywords'];
+		$content['text']=$row['content_text'];
+		$content['thumb']=$row['content_thumb'];
+		if(substr($row['content_thumb'],0,4)=='http'){
+			$content['thumb_http']=$row['content_thumb'];
+		}else{
+			$content['thumb_http']='http://';
+		}
+		$content['password']=$row['content_password'];
+		$content['link']=get_content_link_list($content_id);
+		$content['attachment']=get_content_attachment_list($content_id);
+		$content['is_best']=$row['content_is_best'];
+		$content['is_comment']=$row['content_is_comment'];
+		$content['state']=$row['content_state'];
+		$content['channel_id']=$row['channel_id'];
+		$smarty=new smarty();
+		$smarty->template_dir='templates/admin';
+		$smarty->assign('language',$language);
+		$smarty->assign('content',$content);
+		if(check_have_category($row['channel_id'])){
+			$smarty->assign('category_list',category_option_list(0,$row['channel_id'],$row['category_id']));
+		}else{
+			$smarty->assign('category_list','');
+		}
+		$smarty->assign('mode','update');
+		$smarty->display('content_info.htm');
+	}
+
+	if($do=='content_update'){//更新内容
+		check_permissions("content_write");
+		$content_id=empty($_POST['content_id'])?0:intval($_POST['content_id']);
+		$content_title=empty($_POST['content_title'])?'':trim(addslashes($_POST['content_title']));
+		$content_url=empty($_POST['content_url'])?'':trim(addslashes($_POST['content_url']));
+		$content_keywords=empty($_POST['content_keywords'])?'':trim(addslashes($_POST['content_keywords']));
+		$content_text=empty($_POST['content_text'])?'':trim(addslashes($_POST['content_text']));
+		$content_password=empty($_POST['content_password'])?'':trim(addslashes($_POST['content_password']));
+		$content_is_best=empty($_POST['content_is_best'])?0:1;
+		$content_is_comment=empty($_POST['content_is_comment'])?0:1;
+		$content_state=empty($_POST['content_state'])?0:1;
+		$channel_id=empty($_POST['channel_id'])?0:intval($_POST['channel_id']);
+		$category_id=empty($_POST['category_id'])?0:intval($_POST['category_id']);
+		$content_thumb_http=empty($_POST['content_thumb_http'])?'':trim(addslashes($_POST['content_thumb_http']));
+		if($content_title==''){
+			message(array('text'=>$language['insert_content_title_is_empty'],'link'=>''));
+		}
+		if($content_text==''){
+			//message(array('text'=>$language['insert_content_text_is_empty'],'link'=>''));
+		}
+		$content_thumb=upload($_FILES['content_thumb']);
+		$content_thumb_old=empty($_POST['content_thumb_old'])?'':trim(addslashes($_POST['content_thumb_old']));
+		$content_thumb_delete=empty($_POST['content_thumb_delete'])?'':trim(addslashes($_POST['content_thumb_delete']));
+		$update=array();
+		$update['content_title']=$content_title;
+		$update['content_url']=$content_url;
+		$update['content_keywords']=$content_keywords;
+		$update['content_text']=$content_text;
+		$update['content_password']=$content_password;
+		if(empty($content_thumb_http)||$content_thumb_http=='http://'){
+			if(!empty($content_thumb)){
+				if(!empty($content_thumb_old)){//If something thumbnail delete
+					@unlink(ROOT_PATH."/uploads/".$content_thumb_old);
+				}
+				if($config['image_thumb_open']=='yes'){//If set to generate thumbnail is generated
+					make_thumb(ROOT_PATH.'/uploads/'.$content_thumb,$config['image_thumb_width'],$config['image_thumb_height']);
+				}
+				$update['content_thumb']=$content_thumb;
+			}
+		}else{
+			$update['content_thumb']=$content_thumb_http;
+		}
+		if(!empty($content_thumb_delete)){//If forced deletion shrinkage plan deleted
+			@unlink(ROOT_PATH."/uploads/".$content_thumb_delete);
+			$update['content_thumb']='';
+		}
+		
+		$update['content_is_best']=$content_is_best;
+		$update['content_is_comment']=$content_is_comment;
+		$update['content_state']=$content_state;
+		$update['category_id']=$category_id;
+		//print_r($update);exit;
+		$db->update($db_prefix."content",$update,"content_id='".$content_id."'");
+		$content_link_count=empty($_POST['content_link_count'])?array():explode(",",$_POST['content_link_count']);
+		foreach($content_link_count as $value){
+			if(!empty($value)){
+				$db->update($db_prefix."content_link",array('link_url'=>trim($_POST['content_link_'.$value])),"link_id='".$value."'");
+			}
+		}
+		if(!empty($_POST['content_link_delete'])){//删除连接
+			foreach($_POST['content_link_delete'] as $value){
+				if(!empty($value)){
+					$db->delete($db_prefix."content_link","link_id='".$value."'");
+				}
+			}
+		}
+
+		if(!empty($_POST['content_attachment_delete'])){//删除附件
+			foreach($_POST['content_attachment_delete'] as $value){
+				if(!empty($value)){
+					$row=$db->getone("SELECT attachment_name FROM ".$db_prefix."content_attachment WHERE attachment_id='".$value."'");
+					@unlink(ROOT_PATH."/uploads/".$row['attachment_name']);
+					$db->delete($db_prefix."content_attachment","attachment_id='".$value."'");
+				}
+			}
+		}
+		if(!empty($_POST['content_link'])){//插入内容连接
+			foreach($_POST['content_link'] as $value){
+				if(!empty($value)){
+					$db->insert($db_prefix."content_link",array('link_url'=>$value,'content_id'=>$content_id));
+				}
+			}
+		}
+		//插入内容附件
+		//$content_attachment=upload($_FILES['content_attachment'],true,get_channel_upload_ext($channel_id));
+		//print_r($content_attachment);exit;
+		/*foreach($content_attachment as $value){
+			if(!empty($value)){
+				$db->insert($db_prefix."content_attachment",array('attachment_name'=>$value,'content_id'=>$content_id));
+				if($config['image_text_open']=='yes'){
+					make_watermark(ROOT_PATH.'/uploads/'.$value,!empty($config['image_file'])?ROOT_PATH.'/uploads/'.$config['image_file']:'',$config['image_pos'],$config['image_text']);
+				}
+			}
+		}*/
+		admin_log('update','content',$content_title);
+		clear_cache();
+		message(array('text'=>$language['content_update_is_success'],'link'=>'?action=content&do=content_list&channel_id='.$channel_id));
+	}
+	//删除内容
+	if($do=='content_delete'){
+		check_permissions("content_delete");
+		$content_id=empty($_POST['content_id'])?array():$_POST['content_id'];
+		$channel_id=empty($_POST['channel_id'])?array():$_POST['channel_id'];
+		foreach($content_id as $value){
+			if(!empty($value)){
+				//判断内容是否有缩图，有就删除
+				$row=$db->getone("SELECT content_thumb FROM ".$db_prefix."content WHERE content_id='".$value."'");
+				if(!empty($row['content_thumb'])){
+					@unlink(ROOT_PATH."/uploads/".$row['content_thumb']);
+				}
+				//提取该内容附属的附件文件名并删除
+				$res=$db->getall("SELECT attachment_name FROM ".$db_prefix."content_attachment WHERE content_id='".$value."'");
+				foreach($res as $row){
+					@unlink(ROOT_PATH."/uploads/".$row['attachment_name']);
+				}
+				$db->delete($db_prefix."content_link","content_id=".$value."");
+				$db->delete($db_prefix."content_attachment","content_id=".$value."");
+				$db->delete($db_prefix."content_comment","content_id=".$value."");
+				$db->delete($db_prefix."content","content_id=".$value."");
+			}
+		}
+		admin_log('batch_delete','content','');
+		clear_cache();
+		message(array('text'=>$language['content_delete_is_success'],'link'=>'?action=content&do=content_list&channel_id='.$channel_id));
+	}
+
+	if($do=='comment_list'){//评论列表
+		check_permissions("comment_read");
+		$sql="SELECT * FROM ".$db_prefix."content_comment WHERE 1=1";
+		if(!empty($_GET['content_id'])){
+			$sql.=" AND content_id='".intval($_GET['content_id'])."'";
+		}
+		$sql.=" AND parent_id=0 ORDER BY comment_id DESC";
+		$page_size=15;
+		$page_current=isset($_GET['page'])&&is_numeric($_GET['page'])?intval($_GET['page']):1;
+		$count=$db->getcount($sql);
+		$res=$db->getall($sql." limit ".(($page_current-1)*$page_size).",".$page_size);
+		$comment_list=array();
+		if($count>0){
+			foreach($res as $row){
+				$comment_list[$row['comment_id']]['id']=$row['comment_id'];
+				$comment_list[$row['comment_id']]['content']=encode_comment($row['comment_content']);
+				$comment_list[$row['comment_id']]['reply']=$row['comment_reply'];
+				$comment_list[$row['comment_id']]['ip']=$row['comment_ip'];
+				$comment_list[$row['comment_id']]['agent']=$row['comment_agent'];
+				$comment_list[$row['comment_id']]['time']=date("Y/m/d H:i:s",$row['comment_time']);
+				$comment_list[$row['comment_id']]['content_id']=$row['content_id'];
+			}
+			$parameters="";
+			if(!empty($_GET['content_id'])){
+				$parameters.="content_id=".intval($_GET['content_id'])."&";
+			}
+			$pagebar=pagebar(get_self().'action=content&do=comment_list&',$parameters,$page_current,$page_size,$count);
+		}else{
+			$pagebar="";
+		}
+		$smarty=new smarty();
+		$smarty->template_dir='templates/admin';
+		$smarty->assign('language',$language);
+		$smarty->assign('comment_list',$comment_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('comment_list.htm');
+	}
+	if($do=='comment_edit'){
+		check_permissions('comment_write');
+		$comment_id=isset($_GET['comment_id'])?intval($_GET['comment_id']):'';
+		$row=$db->getone("SELECT * FROM ".$db_prefix."content_comment WHERE comment_id='$comment_id'");
+		$comment=array();
+		$comment['id']=$row['comment_id'];
+		$comment['content_title']=get_content_title($row['content_id']);
+		$comment['ip']=$row['comment_ip'];
+		$comment['ip_address']=get_ip_address($row['comment_ip']);
+		$comment['content']=$row['comment_content'];
+		$comment['reply']=$row['comment_reply'];
+		$comment['time']=date("Y-m-d h:i:s",$row['comment_time']);
+		$comment['state']=$row['comment_state'];
+		$comment['content_id']=$row['content_id'];
+		$comment_list=array();
+		$sql="SELECT * FROM ".$db_prefix."content_comment WHERE parent_id=".$row['comment_id'];
+		$res=$db->getall($sql);
+		foreach($res as $row){
+				$comment_list[$row['comment_id']]['id']=$row['comment_id'];
+				$comment_list[$row['comment_id']]['content']=$row['comment_content'];
+				$comment_list[$row['comment_id']]['reply']=$row['comment_reply'];
+				$comment_list[$row['comment_id']]['ip']=$row['comment_ip'];
+				$comment_list[$row['comment_id']]['agent']=$row['comment_agent'];
+				$comment_list[$row['comment_id']]['time']=date("Y/m/d H:i:s",$row['comment_time']);
+				$comment_list[$row['comment_id']]['content_id']=$row['content_id'];
+			}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('comment',$comment);
+		$smarty->assign('comment_list',$comment_list);
+		$smarty->assign('mode','update');
+		$smarty->display('comment_info.htm');
+	}
+	if($do=='comment_update'){
+		check_permissions('comment_write');
+		$comment_id=empty($_POST['comment_id'])?0:intval($_POST['comment_id']);
+		$comment_content=empty($_POST['comment_content'])?'':addslashes(trim($_POST['comment_content']));
+		$comment_reply=empty($_POST['comment_reply'])?'':addslashes(trim($_POST['comment_reply']));
+
+		$comment_state=empty($_POST['comment_state'])?0:intval($_POST['comment_state']);
+		$update=array();
+		$update['comment_content']=$comment_content;
+		$update['comment_reply']=$comment_reply;
+		$update['comment_state']=$comment_state;
+		$db->update($db_prefix."content_comment",$update,"comment_id=$comment_id");
+		admin_log('update','comment','');
+		clear_cache();
+		message(array('text'=>$language['comment_update_is_success'],'link'=>'?action=content&do=comment_list'));
+	}
+	//删除内容
+	if($do=='comment_delete'){
+		check_permissions("comment_delete");
+		$comment_id=empty($_POST['comment_id'])?array():$_POST['comment_id'];
+		foreach($comment_id as $value){
+			if(!empty($value)){
+				$row=$db->getone("SELECT * FROM ".$db_prefix."content_comment WHERE comment_id='$value'");
+				$db->query("UPDATE ".$db_prefix."content SET content_comment_count=content_comment_count-1 WHERE content_id=".$row['content_id']."");
+				$db->delete($db_prefix."content_comment","comment_id=".$value."");
+			}
+		}
+		admin_log('batch_delete','comment','');
+		clear_cache();
+		message(array('text'=>$language['comment_delete_is_success'],'link'=>'?action=content&do=comment_list'));
+	}
+	if($do=='page_list'){
+		check_permissions('page_read');
+		$page_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."page WHERE parent_id=0 order by page_id desc");
+		if($res){
+			foreach($res as $row){
+				$page_list[$row['page_id']]['id']=$row['page_id'];
+				$page_list[$row['page_id']]['title']=$row['page_title'];
+				$page_list[$row['page_id']]['children']=get_page_children($row['page_id']);
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('page_list',$page_list);
+		$smarty->display('page_list.htm');
+	}
+	if($do=='page_add'){
+		check_permissions('page_write');
+		$page=array();
+		$page['id']=0;
+		$page['title']='';
+		$page['content']='';
+		$page['permissions']='';
+		$page['sort']=0;
+		$page['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('page',$page);
+		$smarty->assign('member_group',get_group_list());
+		$smarty->assign('page_list',get_page_list());
+		$smarty->assign('mode','insert');
+		$smarty->display('page_info.htm');
+	}
+	if($do=='page_insert'){
+		check_permissions('page_write');
+		$page_title=empty($_POST['page_title'])?'':addslashes(trim($_POST['page_title']));
+		$page_content=empty($_POST['page_content'])?'':addslashes(trim($_POST['page_content']));
+		$page_permissions=empty($_POST['page_permissions'])?0:intval($_POST['page_permissions']);
+		$page_state=empty($_POST['page_state'])?0:intval($_POST['page_state']);
+		$page_sort=empty($_POST['page_sort'])?0:intval($_POST['page_sort']);
+		$parent_id=empty($_POST['parent_id'])?0:intval($_POST['parent_id']);
+		$insert=array();
+		$insert['page_title']=$page_title;
+		$insert['page_content']=$page_content;
+		$insert['page_permissions']=$page_permissions;
+		$insert['page_sort']=$page_sort;
+		$insert['page_state']=$page_state;
+		$insert['parent_id']=$parent_id;
+		$db->insert($db_prefix."page",$insert);
+		admin_log('insert','page',$page_title);
+		clear_cache();
+		message(array('text'=>$language['page_insert_is_success'],'link'=>'?action=content&do=page_list'));
+	}
+	if($do=='page_edit'){
+		check_permissions('page_write');
+		$page_id=empty($_GET['page_id'])?'':intval($_GET['page_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."page WHERE page_id='$page_id'");
+		$page=array();
+		$page['id']=$row['page_id'];
+		$page['title']=$row['page_title'];
+		$page['content']=$row['page_content'];
+		$page['permissions']=$row['page_permissions'];
+		$page['sort']=$row['page_sort'];
+		$page['state']=$row['page_state'];
+		$page['parent_id']=$row['parent_id'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('page',$page);
+		$smarty->assign('member_group',get_group_list());
+		$smarty->assign('page_list',get_page_list());
+		$smarty->assign('mode','update');
+		$smarty->display('page_info.htm');
+	}
+	if($do=='page_update'){
+		check_permissions('page_write');
+		$page_id=empty($_POST['page_id'])?0:intval($_POST['page_id']);
+		$page_title=empty($_POST['page_title'])?'':addslashes(trim($_POST['page_title']));
+		$page_content=empty($_POST['page_content'])?'':addslashes(trim($_POST['page_content']));
+		$page_permissions=empty($_POST['page_permissions'])?0:intval($_POST['page_permissions']);
+		$page_state=empty($_POST['page_state'])?0:intval($_POST['page_state']);
+		$page_sort=empty($_POST['page_sort'])?0:intval($_POST['page_sort']);
+		$parent_id=empty($_POST['parent_id'])?0:intval($_POST['parent_id']);
+		$update=array();
+		$update['page_title']=$page_title;
+		$update['page_content']=$page_content;
+		$update['page_permissions']=$page_permissions;
+		$update['page_sort']=$page_sort;
+		$update['page_state']=$page_state;
+		$update['parent_id']=$parent_id;
+		$db->update($db_prefix."page",$update,"page_id=$page_id");
+		admin_log('update','page',$page_title);
+		clear_cache();
+		message(array('text'=>$language['page_update_is_success'],'link'=>'?action=content&do=page_list'));
+	}
+	if($do=='page_delete'){
+		check_permissions('page_delete');
+		$page_id=empty($_GET['page_id'])?'':intval($_GET['page_id']);
+		$page_title=get_page_title($page_id);
+		$db->delete($db_prefix."page","page_id=$page_id");
+		admin_log('delete','page',$page_title);
+		clear_cache();
+		message(array('text'=>$language['page_delete_is_success'],'link'=>'?action=content&do=page_list'));
+	}
+	if($do=='scxml_list'){//生成频道XML
+		check_permissions('scxml_list');
+		$channel_id=empty($_GET['channel_id'])?0:intval($_GET['channel_id']);
+		$channel_name=get_channel_name($channel_id);
+		$date_m = '';
+		$res=$db->getall("SELECT * FROM ".$db_prefix."content WHERE channel_id=$channel_id ORDER BY `content_id` DESC ");
+		foreach($res as $row){
+			 if(strrpos($row['content_thumb'],"http://")!==false && strrpos($row['content_thumb'],"http://")==0){$thumb=$row['content_thumb'];}else{$thumb="./uploads/".$row['content_thumb'];}
+			 $date_m.= "		<song mp3=\"".$row['content_url']."\" title=\"".$row['content_title']."\" author=\"".$row['content_keywords']."\" album=\"".$row['content_password']."\" thumb=\"".$thumb."\" />\n"; 
+		}
+		$date_h = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<player showDisplay=\"yes\" showPlaylist=\"yes\" autoStart=\"yes\">\n";
+		$date_f = "\n</player>";
+		$info_file = "./radio/".$channel_id."_mp3player.xml";
+		$info_file_n = fopen($info_file, 'w+');//生成文件
+		fwrite($info_file_n, $date_h.$date_m.$date_f);//写入文件
+		 
+		clear_cache();
+		message(array('text'=>$language['channel_scxml_is_success'],'link'=>'?action=content&do=channel_list'));
+	}
+}
+/**************************************************************************************/
+if($action=='member'){
+	if($do=='member_list'){
+		check_permissions('member_read');
+		$member_list=array();
+		 
+		$where = " WHERE 1 = 1 ";
+		if(isset($_GET['email'])){
+		 $where .= " AND member_mail='".$_GET['email']."'";
+		 $email=$_GET['email'];
+		 }
+		$sql="SELECT * FROM ".$db_prefix."member".$where;
+		$page_size=30;
+		$page_current=isset($_GET['page'])?intval($_GET['page']):1;
+		$count=$GLOBALS['db']->getcount($sql);
+		$res=$GLOBALS['db']->getall($sql." order by member_id desc limit ".(($page_current-1)*$page_size).",".$page_size); 
+		if($count>0){
+				$no=$count-(($page_current-1)*$page_size);
+				foreach($res as $row){
+					$member_list[$row['member_id']]['no']=$no;
+					$member_list[$row['member_id']]['id']=$row['member_id'];
+					$member_list[$row['member_id']]['mail']=$row['member_mail'];
+					$member_list[$row['member_id']]['nickname']=$row['member_nickname'];
+					$member_list[$row['member_id']]['join_time']=date("Y-m-d h:i:s",$row['member_join_time']);
+					$no--;
+				}
+				$pagebar=pagebar(get_self(),"action=member&do=member_list&",$page_current,$page_size,$count);
+		}else{
+				$pagebar="";
+		}
+		$smarty=new smarty();smarty_header();
+		if(isset($_GET['email'])){$smarty->assign('email',$email);}
+		$smarty->assign('member_list',$member_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('member_list.htm');
+	}
+
+	if($do=='member_add'){
+		check_permissions('member_write');
+		$member=array();
+		$member['id']=0;
+		$member['nickname']='';
+		$member['mail']='';
+		$member['password']='';
+		$member['safecode']='';
+		$member['group_id']=0;
+		$member['name']='';
+		$member['sex']=0;
+		$member['birthday']=date('Y-m-d');
+		$member['phone']='';
+		$member['photo']='';
+		$member['from']='';
+		$member['other']='';
+		$member['join_time']='';
+		$member['last_time']='';
+		$member['last_ip']='';
+		$member['validation']=1;
+		$member['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('member',$member);
+		$smarty->assign('member_group',get_group_list());
+		$smarty->assign('mode','insert');
+		$smarty->display('member_info.htm');
+	}
+
+	if($do=='member_insert'){
+		check_permissions('member_write');
+		$member_nickname=empty($_POST['member_nickname'])?'':addslashes(trim($_POST['member_nickname']));
+		$member_mail=empty($_POST['member_mail'])?'':addslashes(trim($_POST['member_mail']));
+		$member_password=empty($_POST['member_password'])?'':addslashes(trim($_POST['member_password']));
+		$member_safecode=empty($_POST['member_safecode'])?'':addslashes(trim($_POST['member_safecode']));
+		$member_name=empty($_POST['member_name'])?'':addslashes(trim($_POST['member_name']));
+		$member_sex=empty($_POST['member_sex'])?'':intval($_POST['member_sex']);
+		$member_other=empty($_POST['member_other'])?'':addslashes(trim($_POST['member_other']));
+		$member_phone=empty($_POST['member_phone'])?'':addslashes(trim($_POST['member_phone']));
+		$member_from=empty($_POST['member_from'])?'':addslashes(trim($_POST['member_from']));
+		$member_birthday=empty($_POST['member_birthday'])?'':strtotime($_POST['member_birthday']);
+		$member_state=empty($_POST['member_state'])?0:intval($_POST['member_state']);
+		$group_id=empty($_POST['group_id'])?0:intval($_POST['group_id']);
+		if(empty($member_nickname)){
+			message(array('text'=>$language['member_nickname_is_empty'],'link'=>''));
+		}
+		if(empty($member_mail)){
+			message(array('text'=>$language['member_mail_is_empty'],'link'=>''));
+		}
+		if(!is_email($member_mail)){
+			message(array('text'=>$language['member_mail_is_illegal'],'link'=>''));
+		}
+		$member_photo=upload($_FILES['member_photo']);
+		$insert=array();
+		$insert['member_mail']=$member_mail;
+		$insert['member_password']=password($member_password);
+		$insert['member_safecode']=password($member_safecode);
+		$insert['member_nickname']=$member_nickname;
+		$insert['member_name']=$member_name;
+		$insert['member_sex']=$member_sex;
+		$insert['member_phone']=$member_phone;
+		$insert['member_photo']=$member_photo;
+		$insert['member_birthday']=$member_birthday;
+		$insert['member_other']=$member_other;
+		$insert['member_from']=$member_from;
+		$insert['member_state']=$member_state;
+		$insert['group_id']=$group_id;
+		$insert['member_join_time']=$_SERVER['REQUEST_TIME'];
+		$insert['member_last_time']=$_SERVER['REQUEST_TIME'];
+		$insert['member_last_ip']=get_ip();
+		//print_r($insert);exit;
+		$db->insert($db_prefix."member",$insert);
+		admin_log('insert','member',$member_mail);
+		clear_cache();
+		message(array('text'=>$language['member_insert_is_success'],'link'=>'?action=member&do=member_list'));
+	}
+
+	if($do=='member_edit'){
+		check_permissions('member_write');
+		$member_id=empty($_GET['member_id'])?'':intval($_GET['member_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."member WHERE member_id='$member_id'");
+		$member=array();
+		$member['id']=$row['member_id'];
+		$member['nickname']=$row['member_nickname'];
+		$member['mail']=$row['member_mail'];
+		$member['password']=$row['member_password'];
+		$member['safecode']=$row['member_safecode'];
+		$member['group_id']=$row['group_id'];
+		$member['name']=$row['member_name'];
+		$member['sex']=$row['member_sex'];
+		$member['birthday']=date('Y-m-d',$row['member_birthday']);
+		$member['phone']=$row['member_phone'];
+		$member['photo']=$row['member_photo'];
+		$member['from']=$row['member_from'];
+		$member['other']=$row['member_other'];
+		$member['join_time']=date('Y-m-d',$row['member_join_time']);
+		$member['last_time']=date('Y-m-d',$row['member_last_time']);
+		$member['last_ip']=$row['member_last_ip'];
+		$member['validation']=$row['member_validation'];
+		$member['state']=$row['member_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('member',$member);
+		$smarty->assign('member_group',get_group_list());
+		$smarty->assign('mode','update');
+		$smarty->display('member_info.htm');
+	}
+
+	if($do=='member_update'){
+		check_permissions('member_write');
+		$member_id=empty($_POST['member_id'])?'':intval($_POST['member_id']);
+		$member_mail=empty($_POST['member_mail'])?'':addslashes(trim($_POST['member_mail']));
+		$member_nickname=empty($_POST['member_nickname'])?'':addslashes(trim($_POST['member_nickname']));
+		$member_password=empty($_POST['member_password'])?'':addslashes(trim($_POST['member_password']));
+		$member_safecode=empty($_POST['member_safecode'])?'':addslashes(trim($_POST['member_safecode']));
+		$member_name=empty($_POST['member_name'])?'':addslashes(trim($_POST['member_name']));
+		$member_sex=empty($_POST['member_sex'])?'':intval($_POST['member_sex']);
+		$member_other=empty($_POST['member_other'])?'':addslashes(trim($_POST['member_other']));
+		$member_phone=empty($_POST['member_phone'])?'':addslashes(trim($_POST['member_phone']));
+		$member_from=empty($_POST['member_from'])?'':addslashes(trim($_POST['member_from']));
+		$member_birthday=empty($_POST['member_birthday'])?'':strtotime($_POST['member_birthday']);
+		$member_state=empty($_POST['member_state'])?0:intval($_POST['member_state']);
+		$group_id=empty($_POST['group_id'])?0:intval($_POST['group_id']);
+		$member_photo_old=empty($_POST['member_photo_old'])?'':addslashes(trim($_POST['member_photo_old']));
+		$member_photo_delete=empty($_POST['member_photo_delete'])?'':addslashes(trim($_POST['member_photo_delete']));
+		if(empty($member_nickname)){
+			message(array('text'=>$language['member_nickname_is_empty'],'link'=>''));
+		}
+		$member_photo=upload($_FILES['member_photo']);
+		$update=array();
+		if(!empty($member_password)){
+			$update['member_password']=password($member_password);
+		}
+		if(!empty($member_safecode)){
+			$update['member_safecode']=password($member_safecode);
+		}
+		$update['member_nickname']=$member_nickname;
+		$update['member_name']=$member_name;
+		$update['member_sex']=$member_sex;
+		$update['member_phone']=$member_phone;
+		if(!empty($member_photo)){
+			@unlink(ROOT_PATH."/uploads/".$member_photo_old);
+			$update['member_photo']=$member_photo;
+		}
+		if(!empty($member_photo_delete)){
+			@unlink(ROOT_PATH."/uploads/".$member_photo_delete);
+			$update['member_photo']='';
+		}
+		$update['member_birthday']=$member_birthday;
+		$update['member_other']=$member_other;
+		$update['member_from']=$member_from;
+		$update['member_state']=$member_state;
+		$update['group_id']=$group_id;
+		//print_r($insert);exit;
+		$db->update($db_prefix."member",$update,"member_id=$member_id");
+		admin_log('update','member',$member_mail);
+		clear_cache();
+		message(array('text'=>$language['member_update_is_success'],'link'=>'?action=member&do=member_list'));
+	}
+	if($do=='member_delete'){
+		check_permissions('member_delete');
+		$member_id=empty($_POST['member_id'])?array():$_POST['member_id'];
+		if(count($member_id)>0){
+			foreach($member_id as $value){
+				$row=$db->getone("SELECT member_photo FROM ".$db_prefix."member WHERE member_id=$value");
+				if(!empty($row['member_photo'])){
+					@unlink(ROOT_PATH."/uploads/".$row['member_photo']);
+				}
+				$db->delete($db_prefix."member","member_id=$value");
+			}
+		}
+		admin_log('delete','member','');
+		clear_cache();
+		message(array('text'=>$language['member_delete_is_success'],'link'=>'?action=member&do=member_list'));
+	}
+
+	if($do=='group_list'){
+		check_permissions('member_group_read');
+		$group_list=array();
+		$res=$db->getall("SELECT * FROM ".$db_prefix."member_group order by group_id asc");
+		if($res){
+			foreach($res as $row){
+				$group_list[$row['group_id']]['name']=$row['group_name'];
+				$group_list[$row['group_id']]['id']=$row['group_id'];
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('group_list',$group_list);
+		$smarty->display('member_group_list.htm');
+	}
+	if($do=='group_add'){
+		check_permissions('member_group_write');
+		$group=array();
+		$group['id']=0;
+		$group['name']='';
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('group',$group);
+		$smarty->assign('mode','insert');
+		$smarty->display('member_group_info.htm');
+	}
+	if($do=='group_insert'){
+		check_permissions('member_group_write');
+		$group_name=empty($_POST['group_name'])?'':addslashes(trim($_POST['group_name']));
+		if(empty($group_name)){
+			message(array('text'=>$language['member_group_name_is_empty'],'link'=>''));
+		}
+		$insert=array();
+		$insert['group_name']=$group_name;
+		$db->insert($db_prefix."member_group",$insert);
+		admin_log('insert','member_group',$group_name);
+		clear_cache();
+		message(array('text'=>$language['member_group_insert_is_success'],'link'=>'?action=member&do=group_list'));
+	}
+	if($do=='group_edit'){
+		check_permissions('member_group_write');
+		$group_id=empty($_GET['group_id'])?'':intval($_GET['group_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."member_group  WHERE group_id='$group_id'");
+		$group=array();
+		$group['id']=$row['group_id'];
+		$group['name']=$row['group_name'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('group',$group);
+		$smarty->assign('mode','update');
+		$smarty->display('member_group_info.htm');
+	}
+	if($do=='group_update'){
+		check_permissions('member_group_write');
+		$group_id=empty($_POST['group_id'])?'':intval($_POST['group_id']);
+		$group_name=empty($_POST['group_name'])?'':addslashes(trim($_POST['group_name']));
+		if(empty($group_name)){
+			message(array('text'=>$language['member_group_name_is_empty'],'link'=>''));
+		}
+		$update=array();
+		$update['group_name']=$group_name;
+		$db->update($db_prefix."member_group",$update,"group_id=$group_id");
+		admin_log('update','member_group',$group_name);
+		clear_cache();
+		message(array('text'=>$language['member_group_insert_is_success'],'link'=>'?action=member&do=group_list'));
+	}
+	if($do=='group_delete'){
+		check_permissions('member_group_delete');
+		$group_id=empty($_GET['group_id'])?0:intval($_GET['group_id']);
+		$group_name=get_group_name($group_id);
+		$db->delete($db_prefix."member_group","group_id=$group_id");
+		admin_log('delete','member_group',$group_name);
+		clear_cache();
+		message(array('text'=>$language['member_group_delete_is_success'],'link'=>'?action=member&do=group_list'));
+	}
+}
+/**************************************************************************************/
+if($action=='other'){
+	if($do=='ad_list'){
+		check_permissions('ad_read');
+		$ad_list=array();
+		$sql="SELECT * FROM ".$db_prefix."ad";
+		$page_size=30;
+		$page_current=isset($_GET['page'])?intval($_GET['page']):1;
+		$count=$GLOBALS['db']->getcount($sql);
+		$res=$GLOBALS['db']->getall($sql." order by ad_id desc limit ".(($page_current-1)*$page_size).",".$page_size);
+		if($count>0){
+				$no=$count-(($page_current-1)*$page_size);
+				foreach($res as $row){//ad_name  ad_content  ad_start  ad_end  ad_place  ad_state
+					$ad_list[$row['ad_id']]['no']=$no;
+					$ad_list[$row['ad_id']]['id']=$row['ad_id'];
+					$ad_list[$row['ad_id']]['name']=$row['ad_name'];
+					$ad_list[$row['ad_id']]['content']=$row['ad_content'];
+					$ad_list[$row['ad_id']]['start']=date("Y-m-d h:i:s",$row['ad_start']);
+					$ad_list[$row['ad_id']]['end']=date("Y-m-d h:i:s",$row['ad_end']);
+					$ad_list[$row['ad_id']]['place']=$row['ad_place'];
+					$ad_list[$row['ad_id']]['state']=$row['ad_state'];
+					$no--;
+				}
+				$pagebar=pagebar(get_self(),"action=other&do=ad_list&",$page_current,$page_size,$count);
+		}else{
+				$pagebar="";
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('ad_list',$ad_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('ad_list.htm');
+	}
+	if($do=='ad_add'){
+		check_permissions('ad_read');
+		$ad=array();
+		$ad['id']=0;
+		$ad['name']='';
+		$ad['content']='';
+		$ad['start']=date("Y-m-d");
+		$ad['end']=date("Y-m-d",strtotime("+7 days"));
+		$ad['place']=1;
+		$ad['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('ad',$ad);
+		$smarty->assign('mode','insert');
+		$smarty->display('ad_info.htm');
+	}
+	if($do=='ad_insert'){
+		check_permissions('ad_write');
+		$ad_name=empty($_POST['ad_name'])?'':addslashes(trim($_POST['ad_name']));
+		$ad_content=empty($_POST['ad_content'])?'':addslashes(trim($_POST['ad_content']));
+		$ad_start=empty($_POST['ad_start'])?'':strtotime($_POST['ad_start']);
+		$ad_end=empty($_POST['ad_end'])?'':strtotime($_POST['ad_end']);
+		$ad_place=empty($_POST['ad_place'])?'':intval($_POST['ad_place']);
+		$ad_state=empty($_POST['ad_state'])?'':intval($_POST['ad_state']);
+		$insert=array();
+		$insert['ad_name']=$ad_name;
+		$insert['ad_content']=$ad_content;
+		$insert['ad_start']=$ad_start;
+		$insert['ad_end']=$ad_end;
+		$insert['ad_place']=$ad_place;
+		$insert['ad_state']=$ad_state;
+		$db->insert($db_prefix."ad",$insert);
+		admin_log('update','ad',$ad_name);
+		clear_cache();
+		message(array('text'=>$language['ad_insert_is_success'],'link'=>'?action=other&do=ad_list'));
+	}
+	if($do=='ad_edit'){
+		check_permissions('ad_write');
+		$ad_id=empty($_GET['ad_id'])?'':intval($_GET['ad_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."ad WHERE ad_id='$ad_id'");
+		$ad=array();
+		$ad['id']=$row['ad_id'];
+		$ad['name']=$row['ad_name'];
+		$ad['content']=$row['ad_content'];
+		$ad['start']=date("Y-m-d",$row['ad_start']);
+		$ad['end']=date("Y-m-d",$row['ad_end']);
+		$ad['place']=$row['ad_place'];
+		$ad['state']=$row['ad_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('ad',$ad);
+		$smarty->assign('mode','update');
+		$smarty->display('ad_info.htm');
+	}
+	if($do=='ad_update'){
+		check_permissions('ad_write');
+		$ad_id=empty($_POST['ad_id'])?'':intval($_POST['ad_id']);
+		$ad_name=empty($_POST['ad_name'])?'':addslashes(trim($_POST['ad_name']));
+		$ad_content=empty($_POST['ad_content'])?'':addslashes(trim($_POST['ad_content']));
+		$ad_start=empty($_POST['ad_start'])?'':strtotime($_POST['ad_start']);
+		$ad_end=empty($_POST['ad_end'])?'':strtotime($_POST['ad_end']);
+		$ad_place=empty($_POST['ad_place'])?'':intval($_POST['ad_place']);
+		$ad_state=empty($_POST['ad_state'])?'':intval($_POST['ad_state']);
+		$update=array();
+		$update['ad_name']=$ad_name;
+		$update['ad_content']=$ad_content;
+		$update['ad_start']=$ad_start;
+		$update['ad_end']=$ad_end;
+		$update['ad_place']=$ad_place;
+		$update['ad_state']=$ad_state;
+		$db->update($db_prefix."ad",$update,"ad_id=$ad_id");
+		admin_log('update','ad',$ad_name);
+		clear_cache();
+		message(array('text'=>$language['ad_update_is_success'],'link'=>'?action=other&do=ad_list'));
+	}
+	if($do=='ad_delete'){
+		check_permissions('ad_delete');
+		$ad_id=empty($_GET['ad_id'])?'':intval($_GET['ad_id']);
+		$ad_name=get_ad_name($ad_id);
+		$db->delete($db_prefix."ad","ad_id=$ad_id");
+		admin_log('delete','ad',$ad_name);
+		clear_cache();
+		message(array('text'=>$language['ad_delete_is_success'],'link'=>'?action=other&do=ad_list'));
+	}
+
+	if($do=='vote_list'){
+		check_permissions('vote_read');
+		$vote_list=array();
+		$sql="SELECT * FROM ".$db_prefix."vote";
+		$page_size=30;
+		$page_current=isset($_GET['page'])?intval($_GET['page']):1;
+		$count=$GLOBALS['db']->getcount($sql);
+		$res=$GLOBALS['db']->getall($sql." order by vote_id desc limit ".(($page_current-1)*$page_size).",".$page_size);
+		if($count>0){
+				$no=$count-(($page_current-1)*$page_size);
+				foreach($res as $row){
+					$vote_list[$row['vote_id']]['no']=$no;
+					$vote_list[$row['vote_id']]['id']=$row['vote_id'];
+					$vote_list[$row['vote_id']]['title']=$row['vote_title'];
+					$vote_list[$row['vote_id']]['start']=date("Y-m-d h:i:s",$row['vote_start']);
+					$vote_list[$row['vote_id']]['end']=date("Y-m-d h:i:s",$row['vote_end']);
+					$vote_list[$row['vote_id']]['place']=$row['vote_place'];
+					$vote_list[$row['vote_id']]['state']=$row['vote_state'];
+					$no--;
+				}
+				$pagebar=pagebar(get_self(),"action=other&do=vote_list&",$page_current,$page_size,$count);
+		}else{
+				$pagebar="";
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('vote_list',$vote_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('vote_list.htm');
+	}
+	if($do=='vote_add'){
+		check_permissions('vote_write');
+		$vote=array();
+		$vote['id']=0;
+		$vote['title']='';
+		$vote['start']=date("Y-m-d");
+		$vote['end']=date("Y-m-d",strtotime("+7 days"));
+		$vote['place']=1;
+		$vote['mode']=1;
+		$vote['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('vote',$vote);
+		$smarty->assign('mode','insert');
+		$smarty->display('vote_info.htm');
+	}
+	if($do=='vote_insert'){
+		check_permissions('vote_write');
+		$vote_title=empty($_POST['vote_title'])?'':addslashes(trim($_POST['vote_title']));
+		$vote_start=empty($_POST['vote_start'])?'':strtotime($_POST['vote_start']);
+		$vote_end=empty($_POST['vote_end'])?'':strtotime($_POST['vote_end']);
+		$vote_place=empty($_POST['vote_place'])?'':intval($_POST['vote_place']);
+		$vote_mode=empty($_POST['vote_place'])?'':intval($_POST['vote_mode']);
+		$vote_state=empty($_POST['vote_state'])?'':intval($_POST['vote_state']);
+		$insert=array();
+		$insert['vote_title']=$vote_title;
+		$insert['vote_start']=$vote_start;
+		$insert['vote_end']=$vote_end;
+		$insert['vote_place']=$vote_place;
+		$insert['vote_mode']=$vote_mode;
+		$insert['vote_state']=$vote_state;
+		$db->insert($db_prefix."vote",$insert);
+		$insert_id=$db->insert_id();
+		$vote_item=empty($_POST['vote_item'])?array():$_POST['vote_item'];
+		foreach($vote_item as $item){
+			if(!empty($item)){
+				$db->insert($db_prefix."vote_item",array('item_title'=>$item,'vote_id'=>$insert_id));
+			}
+		}
+		admin_log('update','vote',$vote_title);
+		clear_cache();
+		message(array('text'=>$language['vote_insert_is_success'],'link'=>'?action=other&do=vote_list'));
+	}
+	if($do=='vote_edit'){
+		check_permissions('vote_write');
+		$vote_id=empty($_GET['vote_id'])?'':intval($_GET['vote_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."vote WHERE vote_id='$vote_id'");
+		$vote=array();
+		$vote['id']=$row['vote_id'];
+		$vote['title']=$row['vote_title'];
+		$vote['start']=date("Y-m-d",$row['vote_start']);
+		$vote['end']=date("Y-m-d",$row['vote_end']);
+		$vote['place']=$row['vote_place'];
+		$vote['mode']=$row['vote_mode'];
+		$vote['state']=$row['vote_state'];
+		$vote['items']=get_vote_children($row['vote_id']);
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('vote',$vote);
+		$smarty->assign('mode','update');
+		$smarty->display('vote_info.htm');
+	}
+	if($do=='vote_update'){
+		check_permissions('vote_write');
+		$vote_id=empty($_POST['vote_id'])?'':intval($_POST['vote_id']);
+		$vote_title=empty($_POST['vote_title'])?'':addslashes(trim($_POST['vote_title']));
+		$vote_start=empty($_POST['vote_start'])?'':strtotime($_POST['vote_start']);
+		$vote_end=empty($_POST['vote_end'])?'':strtotime($_POST['vote_end']);
+		$vote_place=empty($_POST['vote_place'])?'':intval($_POST['vote_place']);
+		$vote_mode=empty($_POST['vote_place'])?'':intval($_POST['vote_mode']);
+		$vote_state=empty($_POST['vote_state'])?'':intval($_POST['vote_state']);
+		$update=array();
+		$update['vote_title']=$vote_title;
+		$update['vote_start']=$vote_start;
+		$update['vote_end']=$vote_end;
+		$update['vote_place']=$vote_place;
+		$update['vote_mode']=$vote_mode;
+		$update['vote_state']=$vote_state;
+		$db->update($db_prefix."vote",$update,"vote_id=$vote_id");
+		$vote_item=empty($_POST['vote_item'])?array():$_POST['vote_item'];
+		foreach($vote_item as $item){
+			if(!empty($item)){
+				$db->insert($db_prefix."vote_item",array('item_title'=>$item,'vote_id'=>$vote_id));
+			}
+		}
+		$item_id=empty($_POST['item_id'])?array():$_POST['item_id'];
+		$delete_id=empty($_POST['delete_id'])?array():$_POST['delete_id'];
+		$update_id=array_diff($item_id,$delete_id);
+		foreach($update_id as $id){
+			$item_title=empty($_POST['item_title_'.$id])?'':addslashes(trim($_POST['item_title_'.$id]));
+			if(!empty($item_title)){
+				$db->update($db_prefix."vote_item",array('item_title'=>$item_title),"item_id=$id");
+			}
+		}
+		foreach($delete_id as $id){
+			if(!empty($id)){
+				$db->delete($db_prefix."vote_item","item_id=$id");
+			}
+		}
+		admin_log('update','vote',$vote_title);
+		clear_cache();
+		message(array('text'=>$language['vote_update_is_success'],'link'=>'?action=other&do=vote_list'));
+	}
+	if($do=='vote_delete'){
+		check_permissions('vote_delete');
+		$vote_id=empty($_GET['vote_id'])?'':intval($_GET['vote_id']);
+		$vote_title=get_vote_title($vote_id);
+		$db->delete($db_prefix."vote_log","vote_id=$vote_id");
+		$db->delete($db_prefix."vote_item","vote_id=$vote_id");
+		$db->delete($db_prefix."vote","vote_id=$vote_id");
+		admin_log('delete','vote',$vote_title);
+		message(array('text'=>$language['vote_delete_is_success'],'link'=>'?action=other&do=vote_list'));
+	}
+
+	if($do=='link_list'){
+		check_permissions('link_read');
+		$link_list=array();
+		$sql="SELECT * FROM ".$db_prefix."link";
+		$page_size=30;
+		$page_current=isset($_GET['page'])?intval($_GET['page']):1;
+		$count=$GLOBALS['db']->getcount($sql);
+		$res=$GLOBALS['db']->getall($sql." order by link_id desc limit ".(($page_current-1)*$page_size).",".$page_size);
+		if($count>0){
+				$no=$count-(($page_current-1)*$page_size);
+				foreach($res as $row){//ad_name  ad_content  ad_start  ad_end  ad_place  ad_state
+					$link_list[$row['link_id']]['no']=$no;
+					$link_list[$row['link_id']]['id']=$row['link_id'];
+					$link_list[$row['link_id']]['name']=$row['link_name'];
+					$link_list[$row['link_id']]['logo']=$row['link_logo'];
+					$link_list[$row['link_id']]['text']=$row['link_text'];
+					$link_list[$row['link_id']]['url']=$row['link_url'];
+					$link_list[$row['link_id']]['state']=$row['link_state'];
+					$no--;
+				}
+				$pagebar=pagebar(get_self(),"action=other&do=link_list&",$page_current,$page_size,$count);
+		}else{
+				$pagebar="";
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('link_list',$link_list);
+		$smarty->assign('pagebar',$pagebar);
+		$smarty->display('link_list.htm');
+	}
+	if($do=='link_add'){
+		check_permissions('link_write');
+		$link=array();
+		$link['id']=0;
+		$link['name']='';
+		$link['logo']='';
+		$link['text']='';
+		$link['url']='';
+		$link['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('link',$link);
+		$smarty->assign('mode','insert');
+		$smarty->display('link_info.htm');
+	}
+	if($do=='link_insert'){
+		check_permissions('link_write');
+		$link_name=empty($_POST['link_name'])?'':addslashes(trim($_POST['link_name']));
+		$link_text=empty($_POST['link_text'])?'':addslashes(trim($_POST['link_text']));
+		$link_url=empty($_POST['link_url'])?'':addslashes(trim($_POST['link_url']));
+		$link_state=empty($_POST['link_state'])?0:intval($_POST['link_state']);
+		$link_logo=upload($_FILES['link_logo']);
+		$insert=array();
+		$insert['link_name']=$link_name;
+		$insert['link_text']=$link_text;
+		$insert['link_url']=$link_url;
+		$insert['link_logo']=$link_logo;
+		$insert['link_state']=$link_state;
+		$db->insert($db_prefix."link",$insert);
+		admin_log('update','link',$link_name);
+		clear_cache();
+		message(array('text'=>$language['link_insert_is_success'],'link'=>'?action=other&do=link_list'));
+	}
+	if($do=='link_edit'){
+		check_permissions('link_write');
+		$link_id=empty($_GET['link_id'])?'':intval($_GET['link_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."link WHERE link_id='$link_id'");
+		$link=array();
+		$link['id']=$row['link_id'];
+		$link['name']=$row['link_name'];
+		$link['logo']=$row['link_logo'];
+		$link['text']=$row['link_text'];
+		$link['url']=$row['link_url'];
+		$link['state']=$row['link_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('link',$link);
+		$smarty->assign('mode','update');
+		$smarty->display('link_info.htm');
+	}
+	if($do=='link_update'){
+		check_permissions('link_write');
+		$link_id=empty($_POST['link_id'])?'':intval($_POST['link_id']);
+		$link_name=empty($_POST['link_name'])?'':addslashes(trim($_POST['link_name']));
+		$link_text=empty($_POST['link_text'])?'':addslashes(trim($_POST['link_text']));
+		$link_url=empty($_POST['link_url'])?'':addslashes(trim($_POST['link_url']));
+		$link_state=empty($_POST['link_state'])?0:intval($_POST['link_state']);
+		$link_logo=upload($_FILES['link_logo'],false,'jpg,png,gif');
+		$link_logo_old=empty($_POST['link_logo_old'])?'':trim($_POST['link_logo_old']);
+		$link_logo_delete=empty($_POST['link_logo_delete'])?'':trim($_POST['link_logo_delete']);
+		$update=array();
+		$update['link_name']=$link_name;
+		$update['link_text']=$link_text;
+		$update['link_url']=$link_url;
+		if(!empty($link_logo)){
+			@unlink(ROOT_PATH.'/uploads/'.$link_logo_old);
+			$update['link_logo']=$link_logo;
+		}
+		if(!empty($link_logo_delete)){
+			@unlink(ROOT_PATH.'/uploads/'.$link_logo_delete);
+			$update['link_logo']='';
+		}
+		$update['link_state']=$link_state;
+		$db->update($db_prefix."link",$update,"link_id=$link_id");
+		admin_log('update','link',$link_name);
+		clear_cache();
+		message(array('text'=>$language['link_update_is_success'],'link'=>'?action=other&do=link_list'));
+	}
+	if($do=='link_delete'){
+		check_permissions('link_delete');
+		$link_id=empty($_GET['link_id'])?'':intval($_GET['link_id']);
+		$link_name=get_link_name($link_id);
+		$link_logo=get_link_logo($link_id);
+		if(!empty($link_logo)){
+			@unlink(ROOT_PATH.'/uploads/'.$link_logo);
+		}
+		$db->delete($db_prefix."link","link_id=$link_id");
+		admin_log('delete','link',$link_name);
+		clear_cache();
+		message(array('text'=>$language['link_delete_is_success'],'link'=>'?action=other&do=link_list'));
+	}
+	if($do=='banner_list'){
+		check_permissions('banner_read');
+		$banner_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."banner");
+		if($res){
+			foreach($res as $row){
+				$banner_list[$row['banner_id']]['id']=$row['banner_id'];
+				$banner_list[$row['banner_id']]['name']=$row['banner_name'];
+				$banner_list[$row['banner_id']]['link']=$row['banner_link'];
+				$banner_list[$row['banner_id']]['image']=$row['banner_image'];
+				$banner_list[$row['banner_id']]['state']=$row['banner_state'];
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('banner_list',$banner_list);
+		$smarty->display('banner_list.htm');
+	}
+	if($do=='banner_add'){
+		check_permissions('banner_write');
+		$banner=array();
+		$banner['id']=0;
+		$banner['name']='';
+		$banner['image']='';
+		$banner['link']='';
+		$banner['state']=1;
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('banner',$banner);
+		$smarty->assign('mode','insert');
+		$smarty->display('banner_info.htm');
+	}
+	if($do=='banner_insert'){
+		check_permissions('banner_write');
+		$banner_name=empty($_POST['banner_name'])?'':addslashes(trim($_POST['banner_name']));
+		$banner_link=empty($_POST['banner_link'])?'':addslashes(trim($_POST['banner_link']));
+		$banner_state=empty($_POST['banner_state'])?0:intval($_POST['banner_state']);
+		$banner_image=upload($_FILES['banner_image']);
+		$insert=array();
+		$insert['banner_name']=$banner_name;
+		$insert['banner_link']=$banner_link;
+		$insert['banner_image']=$banner_image;
+		$insert['banner_state']=$banner_state;
+		$db->insert($db_prefix."banner",$insert);
+		admin_log('update','banner',$banner_name);
+		clear_cache();
+		message(array('text'=>$language['banner_insert_is_success'],'link'=>'?action=other&do=banner_list'));
+	}
+	if($do=='banner_edit'){
+		check_permissions('banner_write');
+		$banner_id=empty($_GET['banner_id'])?'':intval($_GET['banner_id']);
+		$row=$db->getone("SELECT * FROM ".$db_prefix."banner WHERE banner_id='$banner_id'");
+		$banner=array();
+		$banner['id']=$row['banner_id'];
+		$banner['name']=$row['banner_name'];
+		$banner['image']=$row['banner_image'];
+		$banner['link']=$row['banner_link'];
+		$banner['state']=$row['banner_state'];
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('banner',$banner);
+		$smarty->assign('mode','update');
+		$smarty->display('banner_info.htm');
+	}
+	if($do=='banner_update'){
+		check_permissions('banner_write');
+		$banner_id=empty($_POST['banner_id'])?'':intval($_POST['banner_id']);
+		$banner_name=empty($_POST['banner_name'])?'':addslashes(trim($_POST['banner_name']));
+		$banner_link=empty($_POST['banner_link'])?'':addslashes(trim($_POST['banner_link']));
+		$banner_state=empty($_POST['banner_state'])?0:intval($_POST['banner_state']);
+		$banner_image=upload($_FILES['banner_image'],false,'jpg,png,gif');
+		$banner_image_old=empty($_POST['banner_image_old'])?'':trim($_POST['banner_image_old']);
+		$banner_image_delete=empty($_POST['banner_image_delete'])?'':trim($_POST['banner_image_delete']);
+		$update=array();
+		$update['banner_name']=$banner_name;
+		$update['banner_link']=$banner_link;
+		if(!empty($banner_image)){
+			@unlink(ROOT_PATH.'/uploads/'.$banner_image_old);
+			$update['banner_image']=$banner_image;
+		}
+		if(!empty($banner_image_delete)){
+			@unlink(ROOT_PATH.'/uploads/'.$banner_image_delete);
+			$update['banner_image']='';
+		}
+		$update['banner_state']=$banner_state;
+		$db->update($db_prefix."banner",$update,"banner_id=$banner_id");
+		admin_log('update','banner',$banner_name);
+		clear_cache();
+		message(array('text'=>$language['banner_update_is_success'],'link'=>'?action=other&do=banner_list'));
+	}
+	if($do=='banner_delete'){
+		check_permissions('banner_delete');
+		$banner_id=empty($_GET['banner_id'])?'':intval($_GET['banner_id']);
+		$banner_name=get_banner_name($banner_id);
+		$banner_image=get_banner_image($banner_image);
+		if(!empty($banner_image)){
+			@unlink(ROOT_PATH.'/uploads/'.$banner_image);
+		}
+		$db->delete($db_prefix."banner","banner_id=$banner_id");
+		admin_log('delete','banner',$banner_name);
+		clear_cache();
+		message(array('text'=>$language['banner_delete_is_success'],'link'=>'?action=other&do=banner_list'));
+	}
+	
+	if($do=='safecode_list'){//邀请码列表
+		check_permissions('safecode_read');
+		$safecode_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."safecode");
+		if($res){
+			foreach($res as $row){
+				$safecode_list[$row['id']]['id']=$row['id'];
+				$safecode_list[$row['id']]['safecode']=$row['safecode'];
+				$safecode_list[$row['id']]['uid']=$row['uid'];
+				$safecode_list[$row['id']]['valid']=$row['valid'];
+				 
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('safecode_list',$safecode_list);
+		$smarty->display('safecode_list.htm');
+	}
+	
+	if($do=='micblog_list'){//用户微博
+		check_permissions('micblog_read');
+		$micblog_list=array();
+		$res=$GLOBALS['db']->getall("SELECT * FROM ".$db_prefix."micblog");
+		if($res){
+			foreach($res as $row){
+				$micblog_list[$row['id']]['id']=$row['id'];
+				$micblog_list[$row['id']]['uid']=$row['uid'];
+				$micblog_list[$row['id']]['recom']=$row['recom'];
+				$micblog_list[$row['id']]['addtime']=$row['addtime'];
+				 
+			}
+		}
+		$smarty=new smarty();smarty_header();
+		$smarty->assign('micblog_list',$micblog_list);
+		$smarty->display('micblog_list.htm');
+	}
+}
+?>
