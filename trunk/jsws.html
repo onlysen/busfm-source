@@ -1,0 +1,39 @@
+<html>
+<head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.6.4.min.js"></script>
+	<script type="text/javascript" src="js/jquery.webservice.js"></script>
+	<script type="text/javascript" src="js/IvanWebService.js"></script>
+	<script type="text/javascript">
+function jt(){
+	
+ //    $.ajax({
+ //    type: "POST",  //访问WebService使用Post方式请求
+	//     contentType: "application/json", //WebService 会返回Json类型
+	//     url: "http://api.bus.fm/sample.asmx/HelloWorld", //调用WebService的地址和方法名称组合 ---- WsURL/方法名
+	//     data: "{}",        //这里是要传递的参数，格式为 data: "{paraName:paraValue}",下面将会看到      
+	//     dataType: 'json',
+	//     success: function (result) {    //回调函数，result，返回值
+	//         //$('#dictionary').append(result.d);
+	//         console.log(result);
+	//     }
+	// });
+	// $.webservice({
+	// 	url:"http://api.bus.fm/sample.asmx",
+	// 	methodName:"HelloWorld",
+	// 	dataType:"text",
+	// 	nameSpace: "http://tempuri.org/",
+	// 	success:function(r){console.log(r);}
+	// });
+	// $.get("http://api.bus.fm/sample.asmx/HelloWorld",function(d){console.log(d);},'jsonp');
+			var wws = new IvanWebService("http://api.bus.fm/sample.asmx");
+			wws.call("HelloWorld",false,[]);
+			console.log(wws.getReturnValue);
+}
+	</script>
+</head>
+<body>
+<a id="t1" href="javascript:jt();">跨域测试</a>
+</body>
+</html>

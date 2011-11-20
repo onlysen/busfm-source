@@ -4,7 +4,7 @@
 $(function(){
 	var navihtml='<a href="javascript:void(0);" class="cb-public">公共频道</a><a href="javascript:void(0);" class="cb-private">私人频道</a>';//用于保存首页的页头
 	var navicp='<a id="page-navi-home" href="#">电台首页</a><a class="page-cpanel" href="#cpanel">个人中心</a><a class="page-diary" href="#diary">个人日记</a>';//个人中心页头
-	var naviabout='<a id="page-navi-home" href="#">电台首页</a><a class="page-about" href="#about">关于巴士</a><a class="page-links" href="#links">巴士链接</a>';//关于页面页头
+	var naviabout='<a id="page-navi-home" href="#">电台首页</a><a class="page-about" href="#about">关于巴士</a><a class="page-links" href="#android">巴士应用</a>';//关于页面页头
 	var navireset='<a id="page-navi-home" href="#">电台首页</a><a class="page-reset" href="#reset">找回密码</a>';//找回密码页面页头
 	var subpage=$("#subpage");//子页面
 	var mainpage=$("#mainpage");//主页面
@@ -31,16 +31,16 @@ $(function(){
 		hash=window.location.hash;
 		switch(hash){
 			case "#about":
-			loadContent("about.php",hash,naviabout,135);
+			loadContent("about.php",hash,naviabout,175);
 			break;
-			case "#links":
+			case "#android":
 			loadContent("about.php",hash,naviabout,45);
 			break;
 			case "#diary":
 			loadContent("diary.php",hash,navicp,45,setPageSize);
 			break;
 			case "#cpanel":
-			loadContent("cpanel.php",0,navicp,135);
+			loadContent("cpanel.php",0,navicp,175);
 			break;
 			case "#reset":
 			logregDialog();
@@ -97,7 +97,7 @@ $(function(){
 		});
 		//复原频道
 		var c=$("#hidchannel").val();
-		if(c!="99"){$(".uparr").css({right:160});$(".channellist a").eq(0).click();}
+		if(c!="99"){$(".uparr").css({right:200});$(".channellist a").eq(0).click();}
 		else{ $(".uparr").css({right:45});$(".channel-bar a").eq(1).click();}
 		if($(".curchannel").is(".cb-private")) $(".uparr").css({right:45});//解决hash从无到有会引发一起change事件，结果导致箭头错位的bug
 		//高度fix

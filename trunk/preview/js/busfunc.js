@@ -36,7 +36,7 @@ $(function(){
 		$(".curchannel").removeClass("curchannel");
 		$(this).addClass("curchannel");
 		$("#channellist span").hide();
-		if(i==0){$(".ch-public").show();$(".uparr").css({right:135});}
+		if(i==0){$(".ch-public").show();$(".uparr").css({right:200});}
 		else{ 
 			if(getCookie("member_id") == ""){$("#actlogin").click();return;}
 			$(".ch-private").show();$(".uparr").css({right:45});
@@ -257,12 +257,13 @@ $(function(){
 		if(m){//从专辑墙切到单专辑
 			showel=$("#singleview");
 			hideel=$("#multiview");
-			setTimeout(function(){$("body").removeClass("highbody");},500);
+			//setTimeout(function(){$("body").removeClass("highbody");},500);
 		}else{//切到专辑墙
 			hideel=$("#singleview");
 			showel=$("#multiview");
-			setTimeout(function(){$("body").addClass("highbody");},400);
+			//setTimeout(function(){$("body").addClass("highbody");},400);
 		}
+		getDyHeight();
 		o.toggleClass("casemulti");
 		hideel.animate({opacity:"hide"},function(){showel.animate({opacity:"show"});});
 	});
@@ -271,8 +272,23 @@ $(function(){
 	//公共日记
 	$("#publicdiary").data({diary:[],i:0});
 	getPromoteDiary();
-	//全局定时事件，每三分钟触发一次
-	globleInterval=setInterval(function(){getPromoteDiary();},180000);
+	//全局定时事件，每30秒触发一次
+	// globleInterval=setInterval(function(){
+	// 	var c=$("#pbcountdown");
+	// 	var interval=10;
+	// 	if(c.data("num")===undefined) c.data("num",interval);
+	// 	var n=Number(c.data("num"));
+	// 	if(--n==-1){
+	// 		getPromoteDiary();
+	// 		getDyHeight();
+	// 		c.data("num",interval)
+	// 	}else{
+	// 		c.data("num",n);
+	// 	}
+	// 	$("<div/>",{text:c.data("num")}).appendTo(c);
+	// 	c.find("div").eq(0).animate({"margin-top":-50},500,function(){c.html("<div>"+c.data("num")+"</div>");})
+	// },1700);
+	globleInterval=setInterval(function(){getPromoteDiary();getDyHeight();},10000);
 	//音量
 	$("#jplayer_vmin").mouseenter(function(){
 		var fs=$("#seekbar");
@@ -418,7 +434,7 @@ function getPromoteDiary(){
 			}
 		});
 	}else{
-		c.data("i",i).find(".pbmain").html(decodeURIComponent(e[i][1])).nextAll(".pbauthor").html(e[i][3]);
+		c.data("i",i).find(".pbmain").html(decodeURIComponent(e[i][1])).prevAll(".pbauthor").html("@"+e[i][3]);
 	}
 }
 //唱片墙
@@ -435,4 +451,13 @@ function logregDialog(flag){
 	f=flag||false;
 	if(f){$("#dg-container").show();$("#srccover").show();}
 	else{$("#dg-container").hide();$("#srccover").hide();$("#dg-container form").hide();}
+}
+//计算动态高度
+function getDyHeight(){
+	setTimeout(function(){
+		var wh=$(window).height();//可见高度
+		var mh=90+485+$("#footer-index").height();//内容总高度
+		if($("#v-handle").is(".casemulti")) mh+=80;//两种视图有40px的高度差
+		$("body").height(Math.max(wh,mh));
+	},50);
 }

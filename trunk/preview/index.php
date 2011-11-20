@@ -6,6 +6,12 @@ include '../admin/basevar.php';
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<title>巴士电台</title>
+		<script>
+		if (typeof localStorage == "undefined"){
+			alert("您正在使用的浏览器不支持巴士电台的大部分功能，正在为您跳转至旧版...");
+			location.href="/";
+		}
+		</script>
 		<link href="css/public.css?v=0.21" rel="stylesheet" type="text/css" />
 		<style type="text/css">
 		</style>
@@ -48,12 +54,13 @@ include '../admin/basevar.php';
 					<span class="cur round10 wavestatic ch-public" cid="1"><a href="javascript:void(0);">白MHz</a></span>
 					<span cid="2" class="round10 ch-public"><a href="javascript:void(0);">灰MHz</a></span>
 					<span cid="3" class="round10 ch-public"><a href="javascript:void(0);">黑MHz</a></span>
-					<span cid="4" class="round10 ch-public"><a href="javascript:void(0);">红MHz</a></span>
+					<span cid="4" class="round10 ch-public"><a href="javascript:void(0);" style="margin-right:156px;">红MHz</a></span>
 					<span cid="99" class="round10 ch-private"><a href="javascript:void(0);">MeMHz</a></span>
 				</div>
 				<div id="changeview"></div>
 			</div>
 			<div id="singleview" class="slidepage">
+				<div id="dock"><img src="img/dock.png" alt=""></div>
 				<div id="leftdetail">
 					<div class="song-meta">
 						<div><span id="s-title"></span></div>
@@ -75,7 +82,7 @@ include '../admin/basevar.php';
 				</div>
 			</div>
 			<div id="player">
-				<div id="jplayer_control">
+				<div id="jplayer_control" title="鼠标滚轮可以调音量哦">
 					<span class="player-right"></span>
 					<span class="player-left"></span>
 					<a hidefocus href="#" id="jplayer_play"><span title="播放"></span></a>
@@ -96,7 +103,7 @@ include '../admin/basevar.php';
 						</div>
 					</div>
 					<span class="sep narrsep"></span>
-					<div id="share">分享<div class="downarr"></div>
+					<div id="share" title="分享到微博">分享<div class="downarr"></div>
 					</div>
 				</div>
 			</div>
@@ -106,14 +113,18 @@ include '../admin/basevar.php';
 	<!--mainbody end-->
 	<!--footer-->
 	<div id="footer-index" class="footer bgray">
-		<div id="pbwrap"><div id="publicdiary"><table id="diatb"><tr><td valign="middle" height=80><span class="pbauthor"></span>: <span class="pbmain"></span></td></tr></table></div></div>
+	<div id="pbwrap">
+		<div id="pbcountdown"><div><!--countdown--></div></div>
+		<div id="publicdiary"><table id="diatb"><tr><td valign="middle" height=80><span class="pbauthor"></span>: <span class="pbmain"></span></td></tr></table></div></div>
 		<div id="copyright">
 		<span>&copy;2011 <a href="#">Bus.Fm</a> 版权所有</span>&nbsp;|
 		<span><a href="#about" class="page-about">关于巴士</a></span>&nbsp;|
 		<span><a href="/blog" class="page-about" target="_blank">官方博客</a></span>&nbsp;|
-		<span><a href="#links" class="page-links">巴士链接</a></span>&nbsp;|
-		<span><a href="javascript:void(0);">意见反馈</a></span>&nbsp;|
-		<span><a href="javascript:void(0);" id="openkeydialog">快捷键</a></span>
+		<!-- <span><a href="#links" class="page-links">巴士链接</a></span>&nbsp;| -->
+		<span><a href="/blog/archives/138" target="_blank">意见反馈</a></span>&nbsp;|
+		<span><a href="javascript:void(0);" id="openkeydialog">快捷键</a></span>&nbsp;&nbsp;
+		<a href="http://weibo.com/indieradio" target="_blank"><img src="img/sinacolor.png" alt="微博" title="微博" style="position:relative; top:3px;"></a>&nbsp;&nbsp;
+		<a href="#android"><img src="img/android.png" alt="android应用" title="android应用" style="position:relative; top:5px;"></a>
 		</div>
 	</div>
 	<!--footer end-->
@@ -203,12 +214,14 @@ var domain='<?=$configs["domain"]?>';
 </script>
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="/js/jquery.jplayer.min.js"></script>
+<script type="text/javascript" src="/js/jquery.mousewheel.min.js"></script>
 <script type="text/javascript" src="js/reflection.js"></script>
 <script type="text/javascript" src="js/bustool.js?v=0.1"></script>
-<script type="text/javascript" src="js/busplayer.min.js?v=0.53"></script>
+<script type="text/javascript" src="js/busplayer.min.js?v=0.55"></script>
 <script type="text/javascript" src="js/busfunc.js?v=0.26"></script>
-<script type="text/javascript" src="js/buspages.js?v=0.21"></script>
+<script type="text/javascript" src="js/buspages.js?v=0.22"></script>
 <!--[if IE 9]>
 <script type="text/javascript" src="js/ie9.min.js"></script>
 <![endif]-->
+<script type="text/javascript" src=" http://js.tongji.linezing.com/1444603/tongji.js"></script>
 </html>
