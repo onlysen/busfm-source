@@ -29,7 +29,7 @@ $(function () {
         errorAlerts: false,
         cssSelector: { play: "#jplayer_play", pause: "#jplayer_pause", stop: "#jplayer_stop", currentTime: "#pt", duration: "#tt", volumeBar: "#jplayer_vbar", volumeBarValue: "#vamount" },
         cssSelectorAncestor: "",
-        swfPath: "/js"
+        swfPath: "js"
     });
     //volume bar click
     $("#jplayer_vbar,#jpalyer_v_wrap").click(function (e) {
