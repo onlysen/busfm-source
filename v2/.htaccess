@@ -1,2 +1,0 @@
-RewriteEngine on
-#RewriteRule ^jump\.php.*$ index.html [QSA,L]

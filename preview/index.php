@@ -213,11 +213,11 @@ include '../admin/basevar.php';
 var domain='<?=$configs["domain"]?>';
 </script>
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
-<script type="text/javascript" src="/js/jquery.jplayer.min.js"></script>
-<script type="text/javascript" src="/js/jquery.mousewheel.min.js"></script>
+<script type="text/javascript" src="js/jquery.jplayer.min.js"></script>
+<script type="text/javascript" src="js/jquery.mousewheel.min.js"></script>
 <script type="text/javascript" src="js/reflection.js"></script>
 <script type="text/javascript" src="js/bustool.js?v=0.1"></script>
-<script type="text/javascript" src="js/busplayer.min.js?v=0.55"></script>
+<script type="text/javascript" src="js/busplayer.js?v=0.55"></script>
 <script type="text/javascript" src="js/busfunc.js?v=0.26"></script>
 <script type="text/javascript" src="js/buspages.js?v=0.22"></script>
 <!--[if IE 9]>

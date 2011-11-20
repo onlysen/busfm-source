@@ -1,6 +1,6 @@
 <?PHP
-require_once('admin/includes/config.php');
-require_once('admin/includes/class_db.php');
+require_once('../admin/includes/config.php');
+require_once('../admin/includes/class_db.php');
 $db=new db($db_host,$db_user,$db_password,$db_name);
 if(!empty($_GET['g'])){
 	$id=base64_decode(getIDFromRandom($_GET['g']));
