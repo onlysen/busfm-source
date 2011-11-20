@@ -31,13 +31,13 @@ $(function () {
         cssSelectorAncestor: "",
         swfPath: "/js"
     });
-
-    //$("#volumeInfo").click(function(){return false;});
     //volume bar click
-    $("#jplayer_vbar,#vamount").click(function (e) {
-        var oft = $(this).offset();
+    $("#jplayer_vbar,#jpalyer_v_wrap").click(function (e) {
+        var o=$(this);
+        var oft = o.offset();
         var v = e.clientX - oft.left;
-        curVolume = v / ($("#jplayer_vbar").width());
+        curVolume = v / (o.width());
+        if(o.is("#jpalyer_v_wrap")) $("#jp").jPlayer("volume",curVolume);
         if (curVolume > 0) {
             var vi = $("#jplayer_vmin span");
             if (vi.is(".mute")) {
@@ -57,7 +57,16 @@ $(function () {
         }
         return false;
     });
-
+    //volume mousewheel
+    $("#player").mousewheel(function(e,d){
+        curVolume=curVolume+d*0.05;
+        var vicon=$("#jplayer_vmin span");
+        if(curVolume<0){curVolume=0;$("#jp").jPlayer("mute");vicon.addClass("mute");return;}
+        if(vicon.is(".mute")){$("#jp").jPlayer("unmute");vicon.removeClass("mute");}
+        if(curVolume>1) curVolume=1;
+        $("#jp").jPlayer("volume",curVolume);
+        return false;
+    });
     function getPlayList(isnotinit) {
         var url = "/ajax/content";
         $.get(url, { id: $("#hidchannel").val(), t: new Date().getMilliseconds() }, function (d) {
@@ -135,7 +144,11 @@ $(function () {
         var sh = [];
         if (localStorage.songlist != null) {
             sh = localStorage.songlist;
-            sh = eval(sh);
+            try{
+                sh = eval(sh);
+            }catch(err){
+                sh=[];
+            }
         }
         if (isinit && sh.length > 0) {//初次加载有一首歌或以上，就全部显示到页面，有别于播放过程中只推入当前歌曲数据
             arrayUnique(sh);
@@ -145,12 +158,12 @@ $(function () {
         $.each(myPlayList[playItem], function (i, m) { newsong.push(m.replace(/,/g, '-')); });
         sh.push(newsong.toString());
         if (sh.length > 24) sh.shift(); //数据只保留24首
-        localStorage.songlist = '[';
+        localStorage.songlist="";
         for (var i = 0; i < sh.length; ) {
             localStorage.songlist += '"' + sh[i].toString() + '"';
             if (++i < sh.length) localStorage.songlist += ',';
         }
-        localStorage.songlist += ']';
+        localStorage.songlist = '[' + localStorage.songlist + ']';
         if (!isinit && sh.length > 1) {//播放过程中，把上一首推入页面
             var el = sh[sh.length - 2].split(',');
             setLocalStorage(el);
@@ -159,7 +172,7 @@ $(function () {
     function setLocalStorage(el) {
         var img = new Image();
         var ms = $("#song-history div");
-        $(img).load(function () { ms.filter(function (i) { return i <= ms.length - 5; }).remove();if($("#alumn-wall img").length==24) $("#alumn-wall li:first").html("").appendTo($("#alumn-wall")); t = $(this).css("opacity", 0.6).appendTo($("#song-history")).reflect({opacity:.2}).clone().data({ id: el[0], title: el[1], artist: el[3], album: el[4] }).appendTo($("#alumn-wall li").filter(function(){return $("img",this).length==0;}).eq(0)); }).error(function () { $(img).attr("src", "img/default_m.png"); }).attr("src", el[5])
+        $(img).load(function () { ms.filter(function (i) { return i <= ms.length - 4; }).remove();if($("#alumn-wall img").length==24) $("#alumn-wall li:first").html("").appendTo($("#alumn-wall")); t = $(this).css("opacity", 0.6).appendTo($("#song-history")).reflect({opacity:.2}).clone().data({ id: el[0], title: el[1], artist: el[3], album: el[4] }).appendTo($("#alumn-wall li").filter(function(){return $("img",this).length==0;}).eq(0)); }).error(function () { $(img).attr("src", "img/default_m.png"); }).attr("src", el[5])
 	.data({ id: el[0], title: el[1], artist: el[3], album: el[4] });
     }
     function playListChange(index, isinit) {
