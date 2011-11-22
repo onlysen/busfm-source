@@ -12,7 +12,7 @@ $(function(){
 	var ajaximg=$("#ajaxload");//ajax加载中图标
 	showHashPage();
 	//绑定hash切换事件
-	$(window).bind('hashchange', function(e){showHashPage();});
+	$(window).bind('hashchange', function(e){alert(1);showHashPage();});
 	//全站唯一需要动态计算高度的地方
 	$(window).resize(function(){setPageSize();});
 	
