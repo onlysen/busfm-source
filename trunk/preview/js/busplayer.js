@@ -244,7 +244,7 @@ $(function () {
         }
         //设定频道
         var cid = $("#hidchannel").val();
-        $("#channel-list li[cid=" + cid + "]").addClass("cur");
+        $("#channellist span[cid=" + cid + "]").addClass("cur,wavestatic");
     }
     $("#khclose").click(function () { KeyHelper(); });
     $("#keyhelp").click(function (e) { e.stopPropagation(); });

@@ -1,4 +1,5 @@
 ﻿<?PHP
+session_start();
 include '../admin/basevar.php';
 ?>
 <!DOCTYPE html>
@@ -6,18 +7,21 @@ include '../admin/basevar.php';
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<title>巴士电台</title>
+		<!--[if lt IE 8]>
+		<script>
+			alert("您正在使用的浏览器不支持巴士电台的大部分功能，正在为您跳转至旧版...");
+			location.href="http://v1.bus.fm/";
+		</script>
+		<![endif]-->
 		<script>
 		if (typeof localStorage == "undefined"){
 			alert("您正在使用的浏览器不支持巴士电台的大部分功能，正在为您跳转至旧版...");
-			location.href="/";
+			location.href="http://v1.bus.fm/";
 		}
 		</script>
 		<link href="css/public.css?v=0.21" rel="stylesheet" type="text/css" />
 		<style type="text/css">
 		</style>
-	<!--[if IE 6]>
-	<link href="css/ie6sucks.css?v=0.3" rel="stylesheet" type="text/css" />
-	<![endif]-->
 	</head>
 <body>
 	<div id="jp"></div>
@@ -51,7 +55,7 @@ include '../admin/basevar.php';
 			<div id="toolbar">
 				<div id="v-handle"></div>
 				<div id="channellist">
-					<span class="cur round10 wavestatic ch-public" cid="1"><a href="javascript:void(0);">白MHz</a></span>
+					<span class="round10 ch-public" cid="1"><a href="javascript:void(0);">白MHz</a></span>
 					<span cid="2" class="round10 ch-public"><a href="javascript:void(0);">灰MHz</a></span>
 					<span cid="3" class="round10 ch-public"><a href="javascript:void(0);">黑MHz</a></span>
 					<span cid="4" class="round10 ch-public"><a href="javascript:void(0);" style="margin-right:156px;">红MHz</a></span>
@@ -207,10 +211,26 @@ include '../admin/basevar.php';
 		</div>
 	</div>
 	<div id="ajaxload"></div>
-	<input type="hidden" name="hidchannel" id="hidchannel" value="1" />
+			<?PHP
+		$channelid=1;
+		if(isset($_SESSION['sharesong'])){
+			$song=$_SESSION['sharesong'];
+			$info="<div style='display:none;' id='hidPriPlay' sid='$id'>";
+			$info.="<span class='hpp_title'>".$song['title']."</span>";
+			$info.="<span class='hpp_url'>".$song['url']."</span>";
+			$info.="<span class='hpp_artist'>".$song['artist']."</span>";
+			$info.="<span class='hpp_album'>".$song['album']."</span>";
+			$info.="<span class='hpp_thumb'>".$song['thumb']."</span>";
+			$info.="</div>";
+			echo $info;
+			$channelid=$song['channel_id'];
+			if(time()-$song['create']>15) unset($_SESSION['sharesong']);
+		}
+		?>
+	<input type="hidden" name="hidchannel" id="hidchannel" value="<?PHP echo $channelid; ?>" />
 </body>
 <script type="text/javascript">
-var domain='<?=$configs["domain"]?>';
+var domain='/';
 </script>
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="js/jquery.jplayer.min.js"></script>
