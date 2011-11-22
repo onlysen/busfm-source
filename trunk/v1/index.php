@@ -1,11 +1,8 @@
 <?PHP
+session_start();
 require_once('../admin/includes/config.php');
 require_once('../admin/includes/class_db.php');
 $db=new db($db_host,$db_user,$db_password,$db_name);
-if(!empty($_GET['g'])){
-	$id=base64_decode(getIDFromRandom($_GET['g']));
-	$song=$db->getone("select * from ".$db_prefix."content where content_id=$id");
-}
 ?>
 <!DOCTYPE html>
 <html>
@@ -27,9 +24,11 @@ if(!empty($_GET['g'])){
 if(isset($_COOKIE["member_id"])){
 	$member_id=$_COOKIE["member_id"];
 	$name=$db->getone("select member_nickname from ".$db_prefix."member where member_id=$member_id");
-	$member_nickname=$name[0];
-	if($_COOKIE["member_nickname"]!=$member_nickname)
-	setcookie("member_nickname", $member_nickname, time()+3600000,"/","bus.fm");
+	if(!empty($name)){
+		$member_nickname=$name[0];
+		if($_COOKIE["member_nickname"]!=$member_nickname)
+		setcookie("member_nickname", $member_nickname, time()+3600000,"/","bus.fm");
+	}
 }
 ?>
 <body style="position:relative;">
@@ -249,27 +248,18 @@ if($r){
 		</div>
 		<?PHP
 		$channelid=1;
-		// if(!empty($_GET['g'])){
-			$id=base64_decode(getIDFromRandom($_GET['g']));
-			// $song=$db->getone("select * from ".$db_prefix."content where content_id=$id");
-			if(!empty($song)){
-				$info="<div style='display:none;' id='hidPriPlay' sid='$id'>";
-				$info.="<span class='hpp_title'>".$song['content_title']."</span>";
-				$info.="<span class='hpp_url'>".$song['content_url']."</span>";
-				$info.="<span class='hpp_artist'>".$song['content_keywords']."</span>";
-				$info.="<span class='hpp_album'>".$song['content_password']."</span>";
-				$info.="<span class='hpp_thumb'>".$song['content_thumb']."</span>";
-				$info.="</div>";
-				echo $info;
-				$channelid=$song['channel_id'];
-			}
-		// }
-		//功能，从URL中恢复歌曲ID，默认ID前三后四为扰码
-		function getIDFromRandom($random){
-			$l=strlen($random);
-			$s=-$l+4;
-			$e=$l-7;
-			return substr($random,$s,$e);
+		if(isset($_SESSION['sharesong'])){
+			$song=$_SESSION['sharesong'];
+			$info="<div style='display:none;' id='hidPriPlay' sid='$id'>";
+			$info.="<span class='hpp_title'>".$song['title']."</span>";
+			$info.="<span class='hpp_url'>".$song['url']."</span>";
+			$info.="<span class='hpp_artist'>".$song['artist']."</span>";
+			$info.="<span class='hpp_album'>".$song['album']."</span>";
+			$info.="<span class='hpp_thumb'>".$song['thumb']."</span>";
+			$info.="</div>";
+			echo $info;
+			$channelid=$song['channel_id'];
+			unset($_SESSION['sharesong']);
 		}
 		?>
 	<!--box end-->

@@ -2,21 +2,22 @@ Options +FollowSymLinks
 
 <IfModule mod_rewrite.c>
 	RewriteEngine on
-	#全局地址优先解析
+	#glolal url
 	RewriteRule ^ajax/(.+)$ admin/$1.php [QSA,L]
-	RewriteRule ^share/(.+)$ ?g=$1 [QSA,L]
-	#一级文件夹不再解析
+	RewriteRule ^share/(.+)$ admin/share.php?g=$1 [QSA,L]
+	#level 1 folder don't rewrite
 	RewriteRule ^admin/(.*)$ admin/$1 [QSA,L]	
 	RewriteRule ^blog/(.*)$ blog/$1 [QSA,L]	
 	RewriteRule ^preview/(.*)$ preview/$1 [QSA,L]
 	RewriteRule ^v1/(.*)$ v1/$1 [QSA,L]
-	#解析主域名bus.tv
+	#bus.fm
 	RewriteCond %{HTTP_HOST} ^(www\.)?bus\.tv$
 	RewriteRule ^/?(.*)$ /preview/$1 [QSA,L]
-	#解析v1.bus.tv
+	#v1.bus.fm
 	RewriteCond %{HTTP_HOST} ^v1\.bus\.tv$
 	RewriteRule ^about/?$ /v1/forms/about.php [QSA,L]
 	RewriteRule ^links/?$ /v1/forms/more.php [QSA,L]
 	RewriteRule ^my/([^/]+)(/(.+))?$ /v1/forms/$1.php?type=$3 [QSA,L]
 	RewriteRule ^/?(.*)$ /v1/$1 [QSA,L]
+	
 </IfModule>

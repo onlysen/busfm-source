@@ -1,6 +1,6 @@
 <?PHP
 	$configs=array(
-		'domain'=>'http://bus.tv/preview/',
+		'domain'=>'http://bus.tv/',
 		'qq'=>array(
 			'appkey' => 'a3f50d5a65d949a1997f5f5dce42fb67',
 			'appsecret' => 'c49c29b284ac11fcd70798983fe39583',
