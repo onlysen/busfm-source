@@ -6,6 +6,12 @@ include '../admin/basevar.php';
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<meta name="description" content="一个没有算法，没有推荐，不知道你的口味的独立电台，你喜欢，或是不喜欢，它就是这么存在着" /> 
+		<meta name="keywords" content="摇滚,独立,音乐,电台,rock,indie,music,radio,bus.fm" />
+		<meta name="application-name" content="Bus Fm" />
+	    <meta name="msapplication-starturl" content="/" />
+		<meta name="msapplication-task" content="name=意见反馈;action-uri=/blog/archives/138;icon-uri=/favicon.ico">
+		<meta name="msapplication-task" content="name=快捷键;action-uri=/blog/archives/82;icon-uri=/favicon.ico">
 		<title>巴士电台</title>
 		<!--[if lt IE 8]>
 		<script>
@@ -42,8 +48,8 @@ include '../admin/basevar.php';
 				</ul>
 			</div>
 			<div class="channel-bar">
-				<a href="javascript:void(0);" class="cb-public">公共频道</a>
-				<a href="javascript:void(0);" class="cb-private">私人频道</a>
+				<a href="javascript:void(0);" class="cb-public btnchannel">公共频道</a>
+				<a href="javascript:void(0);" class="cb-private btnchannel">私人频道</a>
 			</div>
 			<div class="uparr"></div>
 		</div>
@@ -53,7 +59,7 @@ include '../admin/basevar.php';
 	<div id="mainbody">
 		<div id="mainpage">
 			<div id="toolbar">
-				<div id="v-handle"></div>
+				<div id="v-handle" title="切换视图"></div>
 				<div id="channellist">
 					<span class="round10 ch-public" cid="1"><a href="javascript:void(0);">白MHz</a></span>
 					<span cid="2" class="round10 ch-public"><a href="javascript:void(0);">灰MHz</a></span>
@@ -126,7 +132,8 @@ include '../admin/basevar.php';
 		<span><a href="/blog" class="page-about" target="_blank">官方博客</a></span>&nbsp;|
 		<!-- <span><a href="#links" class="page-links">巴士链接</a></span>&nbsp;| -->
 		<span><a href="/blog/archives/138" target="_blank">意见反馈</a></span>&nbsp;|
-		<span><a href="javascript:void(0);" id="openkeydialog">快捷键</a></span>&nbsp;&nbsp;
+		<span><a href="javascript:void(0);" id="openkeydialog">快捷键</a></span>&nbsp;|
+		<span><a href="http://api.bus.fm" target="_blank">API</a></span>&nbsp;&nbsp;
 		<a href="http://weibo.com/indieradio" target="_blank"><img src="img/sinacolor.png" alt="微博" title="微博" style="position:relative; top:3px;"></a>&nbsp;&nbsp;
 		<a href="#android"><img src="img/android.png" alt="android应用" title="android应用" style="position:relative; top:5px;"></a>
 		</div>
@@ -211,35 +218,35 @@ include '../admin/basevar.php';
 		</div>
 	</div>
 	<div id="ajaxload"></div>
-			<?PHP
+	<?PHP
 		$channelid=1;
 		if(isset($_SESSION['sharesong'])){
 			$song=$_SESSION['sharesong'];
-			$info="<div style='display:none;' id='hidPriPlay' sid='$id'>";
-			$info.="<span class='hpp_title'>".$song['title']."</span>";
-			$info.="<span class='hpp_url'>".$song['url']."</span>";
-			$info.="<span class='hpp_artist'>".$song['artist']."</span>";
-			$info.="<span class='hpp_album'>".$song['album']."</span>";
-			$info.="<span class='hpp_thumb'>".$song['thumb']."</span>";
-			$info.="</div>";
-			echo $info;
-			$channelid=$song['channel_id'];
 			if(time()-$song['create']>15) unset($_SESSION['sharesong']);
+			else{
+				$info="<div style='display:none;' id='hidPriPlay' sid='$id'>";
+				$info.="<span class='hpp_title'>".$song['title']."</span>";
+				$info.="<span class='hpp_url'>".$song['url']."</span>";
+				$info.="<span class='hpp_artist'>".$song['artist']."</span>";
+				$info.="<span class='hpp_album'>".$song['album']."</span>";
+				$info.="<span class='hpp_thumb'>".$song['thumb']."</span>";
+				$info.="</div>";
+				echo $info;
+				$channelid=$song['channel_id'];
+			}
 		}
-		?>
-	<input type="hidden" name="hidchannel" id="hidchannel" value="<?PHP echo $channelid; ?>" />
+	?>
+	<input type="hidden" name="hidchannel" id="hidchannel" value="<?php echo $channelid; ?>" />
 </body>
 <script type="text/javascript">
 var domain='/';
 </script>
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="js/jquery.jplayer.min.js"></script>
-<script type="text/javascript" src="js/jquery.mousewheel.min.js"></script>
-<script type="text/javascript" src="js/reflection.js"></script>
-<script type="text/javascript" src="js/bustool.js?v=0.1"></script>
+<script type="text/javascript" src="js/bustool.min.js?v=0.11"></script>
 <script type="text/javascript" src="js/busplayer.min.js?v=0.56"></script>
-<script type="text/javascript" src="js/busfunc.js?v=0.26"></script>
-<script type="text/javascript" src="js/buspages.js?v=0.22"></script>
+<script type="text/javascript" src="js/busfunc.min.js?v=0.27"></script>
+<script type="text/javascript" src="js/buspages.min.js?v=0.23"></script>
 <!--[if IE 9]>
 <script type="text/javascript" src="js/ie9.min.js"></script>
 <![endif]-->

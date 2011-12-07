@@ -1,6 +1,5 @@
 ﻿var globleInterval;//全局定时器
 $(function(){
-	$("#hidchannel").val(1);
 	//判断登录状态
 	if (getCookie("member_id") != "") {
 		setProfile();
@@ -31,13 +30,14 @@ $(function(){
 		return false;
 	});
 	//频道切换
-	$(".channel-bar a").live("click",function(){
-		i=$(this).index();
+	$(".btnchannel").live("click",function(){
+		var o=$(this);
 		$(".curchannel").removeClass("curchannel");
-		$(this).addClass("curchannel");
+		o.addClass("curchannel");
 		$("#channellist span").hide();
-		if(i==0){$(".ch-public").show();$(".uparr").css({right:200});}
+		if(o.is(".cb-public")){$(".ch-public").show();$(".uparr").css({right:200});}
 		else{ 
+			console.log(1);
 			if(getCookie("member_id") == ""){$("#actlogin").click();return;}
 			$(".ch-private").show();$(".uparr").css({right:45});
 		}

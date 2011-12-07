@@ -158,7 +158,7 @@ li{list-style:none;}
 #share .downarr{position:relative; top:3px; left:4px;}
 
 /*common msgs*/
-#msgs{color:#fff;background:#000; filter:alpha(opacite=0); opacity:0; padding:3px 15px; position:absolute; top:35px; left:50%; z-index:999;}
+#msgs{color:#fff;background:#000; filter:alpha(opacite=0); opacity:0; padding:3px 15px; position:absolute; top:35px; left:50%; z-index:999; display:none;}
 #msgs a {color:#fff; text-decoration:underline; margin-left:10px;}
 .msg_err{background:#a00!important;}
 

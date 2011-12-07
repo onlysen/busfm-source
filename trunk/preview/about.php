@@ -9,7 +9,7 @@
 		<style type="text/css">		
 			#about p{margin-bottom:10px;}
 			#about .tcwrap{display:inline-block; width:90px; margin:10px 25px 0 0; position:relative;}
-			#about .creater .avatar{display:inline-block; width:90px; height:90px; background:#959595 url(img/avatar.gif) 0 0 no-repeat; position:relative; box-shadow:3px 3px 5px #000;}
+			#about .creater .avatar{display:inline-block; width:90px; height:90px; background:#959595 url(img/avatar.gif) 0 0 no-repeat; position:relative; /*box-shadow:3px 3px 5px #000;*/}
 			#about .creater .avatar span{position:absolute; bottom:0; padding:5px; color:#fff; display:none; cursor:default;}
 			#about .creater .avatar .bkc{width:80px; height:80px; opacity:0.7; filter:alpha(opacity=70);background:#000;}
 			#about .creater span.sns{text-align:center; position:absolute; top:95px; left:0; width:80px; display:none; background:#fff;}
@@ -65,7 +65,8 @@
 			<div class="tcwrap">
 				<span class="round avatar" style="background-position:0 -180px;"><span class="bkc round"></span><span class="uinfo">大蓝<br/>网站和手机应用UI</span></span>
 				<span class="round10 sns">
-					<a href="http://weibo.com/kacc829 " target="_blank" style="background-position:left -96px;" title="新浪微博"></a>
+					<a href="http://weibo.com/kacc829" target="_blank" style="background-position:left -96px;" title="新浪微博"></a>
+					<a href="http://t.qq.com/kacc0829" target="_blank" style="background-position:left -144px;" title="腾讯微博"></a>
 				</span>
 				</span>
 			</div>
