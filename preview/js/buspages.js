@@ -2,7 +2,7 @@
 //所有页面切换分成两部分：切换页头导航，和切换页面内容
 //同时还要处理箭头位置
 $(function(){
-	var navihtml='<a href="javascript:void(0);" class="cb-public">公共频道</a><a href="javascript:void(0);" class="cb-private">私人频道</a>';//用于保存首页的页头
+	var navihtml='<a href="javascript:void(0);" class="cb-public btnchannel">公共频道</a><a href="javascript:void(0);" class="cb-private btnchannel">私人频道</a>';//用于保存首页的页头
 	var navicp='<a id="page-navi-home" href="#">电台首页</a><a class="page-cpanel" href="#cpanel">个人中心</a><a class="page-diary" href="#diary">个人日记</a>';//个人中心页头
 	var naviabout='<a id="page-navi-home" href="#">电台首页</a><a class="page-about" href="#about">关于巴士</a><a class="page-links" href="#android">巴士应用</a>';//关于页面页头
 	var navireset='<a id="page-navi-home" href="#">电台首页</a><a class="page-reset" href="#reset">找回密码</a>';//找回密码页面页头
@@ -12,7 +12,7 @@ $(function(){
 	var ajaximg=$("#ajaxload");//ajax加载中图标
 	showHashPage();
 	//绑定hash切换事件
-	$(window).bind('hashchange', function(e){alert(1);showHashPage();});
+	$(window).bind('hashchange', function(e){showHashPage();});
 	//全站唯一需要动态计算高度的地方
 	$(window).resize(function(){setPageSize();});
 	
@@ -97,7 +97,7 @@ $(function(){
 		});
 		//复原频道
 		var c=$("#hidchannel").val();
-		if(c!="99"){$(".uparr").css({right:200});$(".channellist a").eq(0).click();}
+		if(c!="99"){$(".uparr").css({right:200});$(".channel-bar a").eq(0).click();}
 		else{ $(".uparr").css({right:45});$(".channel-bar a").eq(1).click();}
 		if($(".curchannel").is(".cb-private")) $(".uparr").css({right:45});//解决hash从无到有会引发一起change事件，结果导致箭头错位的bug
 		//高度fix

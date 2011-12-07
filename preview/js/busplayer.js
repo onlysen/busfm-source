@@ -244,7 +244,7 @@ $(function () {
         }
         //设定频道
         var cid = $("#hidchannel").val();
-        $("#channellist span[cid=" + cid + "]").addClass("cur,wavestatic");
+        $("#channellist span[cid=" + cid + "]").addClass("cur wavestatic");
     }
     $("#khclose").click(function () { KeyHelper(); });
     $("#keyhelp").click(function (e) { e.stopPropagation(); });
@@ -288,7 +288,7 @@ $(function () {
                 break;
             case 39:
             case 78: //跳曲
-                $("#jplayer_next").trigger("click");
+                playListNext();//$("#jplayer_next").trigger("click");
                 keyTip("下一曲");
                 break;
             case 85:
@@ -310,7 +310,7 @@ $(function () {
                 KeyHelper($("#keyhelp").is(":hidden"));
                 break;
             case 87:
-                if ($("#box-main").is(":hidden") && getCookie("member_id") != "") $("#diarybox").trigger("click");
+                jumpDiary();
                 break;
             case 27:
                 KeyHelper(false);
@@ -320,8 +320,8 @@ $(function () {
         }
     });
     function setPlay() {
-        if ($("#jplayer_play").is(":hidden")) { $("#jplayer_pause").trigger("click"); keyTip("暂停"); }
-        else { $("#jplayer_play").trigger("click"); keyTip("播放"); }
+        if ($("#jplayer_play").css("display")=="none") { $("#jp").jPlayer("pause"); keyTip("暂停"); }
+        else { $("#jp").jPlayer("play"); keyTip("播放"); }
     }
     //音量增减，dir=true增
     function setVolume(dir) {
@@ -333,6 +333,10 @@ $(function () {
             if (curVolume < 0) curVolume = 0;
         }
         $("#jp").jPlayer("volume", curVolume);
+    }
+    function jumpDiary(){
+        if($("#actlogin").is(":visible")) $("#actlogin").trigger("click");
+        else location.href="#diary";
     }
     //键盘动作屏幕提示
     function keyTip(text) {

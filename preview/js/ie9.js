@@ -7,16 +7,16 @@ function AddJumpList() {
 }
 function addFuncBtn(){	
 	document.addEventListener('msthumbnailclick', onButtonClicked, false); 
-	btnPlay = window.external.msSiteModeAddThumbBarButton('/image/pin/playback_pause.ico', '暂停'); 
-	btnFav = window.external.msSiteModeAddThumbBarButton('/image/pin/star_fav_empty.ico', '收藏'); 
-	btnNext = window.external.msSiteModeAddThumbBarButton('/image/pin/playback_next.ico', '跳过'); 
+	btnPlay = window.external.msSiteModeAddThumbBarButton('http://v1.bus.fm/image/pin/playback_pause.ico', '暂停'); 
+	btnFav = window.external.msSiteModeAddThumbBarButton('http://v1.bus.fm/image/pin/star_fav_empty.ico', '收藏'); 
+	btnNext = window.external.msSiteModeAddThumbBarButton('http://v1.bus.fm/image/pin/playback_next.ico', '跳过'); 
 	window.external.msSiteModeShowThumbBar(); 
 }
 function addButtonStyles(){
-	styleFav = window.external.msSiteModeAddButtonStyle(btnFav,'/image/pin/star_fav.ico', '收藏');
-	styleUnfav = window.external.msSiteModeAddButtonStyle(btnFav,'/image/pin/star_fav_empty.ico', '取消收藏');
-	stylePlay = window.external.msSiteModeAddButtonStyle(btnPlay,'/image/pin/playback_play.ico', '播放');
-	stylePause = window.external.msSiteModeAddButtonStyle(btnPlay,'/image/pin/playback_pause.ico', '暂停');
+	styleFav = window.external.msSiteModeAddButtonStyle(btnFav,'http://v1.bus.fm/image/pin/star_fav.ico', '收藏');
+	styleUnfav = window.external.msSiteModeAddButtonStyle(btnFav,'http://v1.bus.fm/image/pin/star_fav_empty.ico', '取消收藏');
+	stylePlay = window.external.msSiteModeAddButtonStyle(btnPlay,'http://v1.bus.fm/image/pin/playback_play.ico', '播放');
+	stylePause = window.external.msSiteModeAddButtonStyle(btnPlay,'http://v1.bus.fm/image/pin/playback_pause.ico', '暂停');
 } 
 function setFavBtnState(isFav){
 	// if (!isie9||!window.external.msIsSiteMode())  return;
