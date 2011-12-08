@@ -2,19 +2,10 @@ Options +FollowSymLinks
 
 <IfModule mod_rewrite.c>
 	RewriteEngine on
-	#RewriteCond %{HTTP_HOST} ^v1\.bus\.tv$
-	#RewriteRule ^/?$ v1/index.php [QSA,L]
-	#RewriteRule ^/(.+)$ /v1/yql.html?q=$1 [QSA,L]
-
-#	RewriteRule ^about/?$ forms/about.php [QSA,L]
-#	RewriteRule ^links/?$ forms/more.php [QSA,L]
-#	RewriteRule ^my/([^/]+)(/(.+))?$ forms/$1.php?type=$3 [QSA,L]
-#	RewriteRule ^ajax/(.+)$ admin/$1.php [QSA,L]
-#	RewriteRule ^v2/?$ index2.php [QSA,L]
-#	RewriteRule ^share/(.+)$ ?g=$1 [QSA,L]
-#	RewriteCond %{HTTP_HOST} ^s\.bus\.fm$
-#	RewriteCond %{REQUEST_FILENAME} !-f
-#	RewriteCond %{REQUEST_FILENAME} !-d
-#	RewriteRule ^id-(.*)\.html?$ ?g=$1 [QSA,L]
+	
+	RewriteCond %{HTTP_HOST} ^v1\.bus\.tv$
+	RewriteRule ^about/?$ /v1/forms/about.php [QSA,L]
+	RewriteRule ^links/?$ /v1/forms/more.php [QSA,L]
+	RewriteRule ^my/([^/]+)(/(.+))?$ /v1/forms/$1.php?type=$3 [QSA,L]
 	
 </IfModule>

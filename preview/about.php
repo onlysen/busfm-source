@@ -104,6 +104,7 @@
 				<p>Android版巴士电台不仅能为你提供随身的音乐服务，还能通过背景播放模式，让你在发短信、玩游戏的同时收听巴士电台</p>
 				<p>未注册用户可收听所有公共频道，注册后可收藏喜欢的曲目，并且在私人频道收听</p>
 				<p><a href="/app/busfm_1.0.apk"><img src="img/android3.png" alt=""></a></p>
+				<p><img src="img/busQR.png" alt="" /></p>
 			</div>
 		</div>
 	</div>

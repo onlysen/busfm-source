@@ -286,12 +286,12 @@ if($r){
 			</ul>
 		</div>
 	</div>
-	<!--[if lt ie 8]>
+	<!--[if lt ie 8]-->
 	<div id="ieupgrade">
 	<span class="ieclose"></span>
-	<span class="ietxt">本站大量内容基于HTML5和CSS3，为了得到最好的浏览效果和使用体验，请尝试下载或更新至最新的浏览器及版本...</span>
+	<span class="ietxt">此版本已停止维护，您看到这个页面说明浏览器不支持巴士电台新特性，想要尝试请下载或更新至最新的浏览器及版本...</span>
 	</div>
-	<![endif]-->
+	<!--![endif]-->
 	<input type="hidden" id="hidchannel" name="hidchannel" value="<?PHP echo $channelid; ?>" />
 	<?PHP include("forms/includes/copyright.php"); ?>
 </body>
