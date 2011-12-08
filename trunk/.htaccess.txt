@@ -1,0 +1,24 @@
+Options +FollowSymLinks
+
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+	#glolal url
+	RewriteRule ^ajax/(.+)$ /admin/$1.php [QSA,L]
+	RewriteRule ^share/(.+)$ /admin/share.php?g=$1 [QSA,L]
+	#level 1 folder don't rewrite
+	#RewriteRule ^thumb/(.*)$ thumb/$1 [QSA,L]
+	#RewriteRule ^admin/(.*)$ admin/$1 [QSA,L]	
+	#RewriteRule ^blog/(.*)$ blog/$1 [QSA,L]
+	#RewriteRule ^app/(.*)$ app/$1 [QSA,L]
+	#RewriteRule ^preview/(.*)$ preview/$1 [QSA,L]
+	#RewriteRule ^v1/(.*)$ v1/$1 [QSA,L]
+	#bus.fm
+	RewriteCond $1 !^(thumb|admin|blog|robots\.txt|favicon.gif|favicon.ico|preview|v1)(/|$) [NC]
+	RewriteCond %{HTTP_HOST} ^(www\.)?bus\.\w\w$
+	RewriteRule ^(.*)$ /preview/$1 [QSA,L]
+	#v1.bus.fm
+	RewriteCond $1 !^(thumb|admin|blog|robots\.txt|favicon.gif|favicon.ico|preview|v1)(/|$) [NC]
+	RewriteCond %{HTTP_HOST} ^v1\.bus\.\w\w$
+	RewriteRule ^(.*)$ /v1/$1 [QSA,L]
+	
+</IfModule>

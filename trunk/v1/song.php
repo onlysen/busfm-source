@@ -20,8 +20,8 @@
 <?PHP
  if(!empty($_POST['hid'])){
 	if(empty($_POST['title'])&&empty($_POST['artist'])&&empty($_POST['album'])) exit("filter key words required.");
-	require_once("admin/includes/config.php");
-	require_once("admin/includes/class_db.php");
+	require_once("../admin/includes/config.php");
+	require_once("../admin/includes/class_db.php");
 	$db=new db($db_host,$db_user,$db_password,$db_name);
 	$where=" where 1=1 ";
 	if(!empty($_POST['title'])) $where.=" and content_title like '%".addslashes($_POST['title'])."%' ";
@@ -33,7 +33,7 @@
 		$i=0;
 		echo "<table><tr><th>row</th><th>id</th><th>title</th><th>artist</th><th>album</th><th>url</th></tr>";
 		foreach($song as $s){
-			echo "<tr><td>".$i++."</td><td class='gb'>".$s['content_id']."</td><td>".$s['content_title']."</td><td class='gb'>".$s['content_keywords']."</td><td>".$s['content_password']."</td><td class='gb'>".geturl($s['content_id'])."</td><td>".$s['content_url']."</td></tr>";
+			echo "<tr><td>".$i++."</td><td class='gb'>".$s['content_id']."</td><td>".$s['content_title']."</td><td class='gb'>".$s['content_keywords']."</td><td>".$s['content_password']."</td><td class='gb'>".geturl($s['content_id'])."</td><td>".$s['content_url']."</td><td class='gb'>".$s['content_thumb']."</td></tr>";
 		}
 		echo "</table>";
 	}
